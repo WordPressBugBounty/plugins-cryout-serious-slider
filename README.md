@@ -1,0 +1,1 @@
+# plugins-cryout-serious-slider
