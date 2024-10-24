@@ -2,7 +2,7 @@
 Plugin Name: Cryout Serious Slider
 Plugin URI: https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider
 Description: A free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
-Version: 1.2.5
+Version: 1.2.6
 Author: Cryout Creations
 Author URI: https://www.cryoutcreations.eu
 Text Domain: cryout-serious-slider
@@ -15,7 +15,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 class Cryout_Serious_Slider {
 
-	public $version = "1.2.5";
+	public $version = "1.2.6";
 	public $options = array();
 	public $shortcode_tag = 'serious-slider';
 	public $mce_tag = 'serious_slider';
@@ -30,6 +30,8 @@ class Cryout_Serious_Slider {
 	private $aboutpage = '';
 	private $addnewpage = '';
 	private $plugin_dir = '';
+	private $plugin_url = '';
+	private $sanitizer = NULL;
 	private $justsampled = false;
 
 	public $defaults = array(
@@ -205,7 +207,7 @@ class Cryout_Serious_Slider {
 	***********************/
 	function load_textdomain() {
 		load_plugin_textdomain( 'cryout-serious-slider', false, plugin_basename( dirname( __FILE__ ) ) . '/languages' );
-	}
+	} // load_textdomain()
 
 
 	/**********************
@@ -263,10 +265,8 @@ class Cryout_Serious_Slider {
 	public function meta_links( $links, $file ) {
 		// Check plugin
 		if ( $file === plugin_basename( __FILE__ ) ) {
-			unset( $links[2] );
-			$links[] = '<a href="https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider" target="_blank">' . __( 'Plugin homepage', 'cryout-serious-slider' ) . '</a>';
-			$links[] = '<a href="https://www.cryoutcreations.eu/forums/f/wordpress/plugins/serious-slider" target="_blank">' . __( 'Support forum', 'cryout-serious-slider' ) . '</a>';
-			$links[] = '<a href="https://wordpress.org/plugins/cryout-serious-slider/#developers" target="_blank">' . __( 'Changelog', 'cryout-serious-slider' ) . '</a>';
+			array_splice( $links, 2, 0, '<a href="https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider" target="_blank">' . __( 'Visit plugin site', 'cryout-serious-slider' ) . '</a>' );
+			array_splice( $links, 3, 0, '<a href="https://www.cryoutcreations.eu/forums/f/wordpress/plugins/serious-slider" target="_blank">' . __( 'Support forum', 'cryout-serious-slider' ) . '</a>' );
 		}
 		return $links;
 	}
@@ -776,7 +776,7 @@ class Cryout_Serious_Slider {
 	public function metatax_main_edit($term) {
 
 		$tid = $term->term_id;
-		$the_meta = get_option( "cryout_serious_slider_${tid}_meta" );
+		$the_meta = get_option( "cryout_serious_slider_{$tid}_meta" );
 		$the_meta = wp_parse_args( $the_meta, $this->defaults ); ?>
 		<tr class="form-field">
 			<td colspan="2">
@@ -788,20 +788,23 @@ class Cryout_Serious_Slider {
 
 	function save_taxonomy_custom_meta( $tid ) {
 		if ( isset( $_POST['term_meta'] ) ) {
-			$term_meta = get_option( "cryout_serious_slider_${tid}_meta" );
+			$term_meta = get_option( "cryout_serious_slider_{$tid}_meta" );
 			$cat_keys = array_keys( $_POST['term_meta'] );
 			foreach ( $cat_keys as $key ) {
-				if ( isset ( $_POST['term_meta'][$key] ) ) {
+				// some paramaters are special-er than others
+				if ( $key == 'cryout_serious_slider_textsize' ) $term_meta[$key] = floatval( $_POST['term_meta'][$key] );
+				// the regulars
+				elseif ( isset ( $_POST['term_meta'][$key] ) ) {
 					$term_meta[$key] = sanitize_key($_POST['term_meta'][$key]);
 				}
 			}
 			// Save the option array.
-			update_option( "cryout_serious_slider_${tid}_meta", $term_meta );
+			update_option( "cryout_serious_slider_{$tid}_meta", $term_meta );
 		}
 	} // save_taxonomy_custom_meta()
 
 	function delete_taxonomy_custom_meta( $term_id ) {
-		delete_option( "cryout_serious_slider_${term_id}_meta" );
+		delete_option( "cryout_serious_slider_{$term_id}_meta" );
 	} // delete_taxonomy_custom_meta()
 
 

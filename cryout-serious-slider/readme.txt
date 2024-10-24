@@ -7,8 +7,8 @@ Tags: slider, slideshow, image slider, responsive slider, wordpress slider
 Text Domain: cryout-serious-slider
 Requires at least: 4.5
 Requires PHP: 5.6
-Tested up to: 6.5
-Stable tag: 1.2.5
+Tested up to: 6.6
+Stable tag: 1.2.6
 
 Serious Slider is a free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
 
@@ -100,13 +100,20 @@ Serious Slider works with all WordPress themes and has been designed to integrat
 
 == Changelog ==
 
+= 1.2.6 =
+*Release date - 2024.10.24*
+
+* Fixed over-sanitization of 'base font size' value filtering out float numeric values
+* Fixed PHP 8.3 deprecation warnings: 'creation of dynamic property' and 'using ${var} in strings, use {$var} instead'
+* Tested with WordPress 6.6
+
 = 1.2.5 =
 *Release date - 2024.06.09*
 
 * Added sanitization and additional existent content check to address CSRF vulnerability in sample slider generation - reported by [Steven Julian to patchstack.com](https://patchstack.com/database/vulnerability/cryout-serious-slider/wordpress-serious-slider-plugin-1-2-4-cross-site-request-forgery-csrf-vulnerability)
-* Strengthened sanitization to address CSRF vulnerability in slider option fields - reported by Steven Julian to patchstack.com
-* Added extra number format check for maltformed numbers on shortcode attributes
-* Incresed the number of supported caption buttons to four
+* Strengthened sanitization to address CSRF vulnerability in slider option fields - also reported by Steven Julian to patchstack.com
+* Added extra format check for malformed numbers in shortcode attributes
+* Incresed the number of supported caption buttons to 4
 * Fixed deprecation warning about jQuery.fn.bind()
 * Confirmed compatibility with PHP 8.2
 

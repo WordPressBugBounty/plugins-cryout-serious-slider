@@ -12,6 +12,7 @@ class Cryout_Serious_Slider_Shortcode {
 	private $custom_style = array();
 	private $custom_script = array();
 	private $butts = 2;
+	private $sanitizer = NULL;
 
 	function __construct($args = array()){
 		//register shortcode
@@ -375,7 +376,7 @@ class Cryout_Serious_Slider_Shortcode {
 		global $cryout_serious_slider;
 
 		if (is_numeric($sid)) {
-			$data = get_option( "cryout_serious_slider_${sid}_meta" );
+			$data = get_option( "cryout_serious_slider_{$sid}_meta" );
 			$data = wp_parse_args( $data, $cryout_serious_slider->defaults );
 		} else {
 			$data = $cryout_serious_slider->defaults;

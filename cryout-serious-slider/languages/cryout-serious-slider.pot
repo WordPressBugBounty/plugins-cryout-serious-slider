@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cryout Serious Slider\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-09 18:06+0000\n"
+"POT-Creation-Date: 2024-10-24 17:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -29,11 +29,11 @@ msgid ""
 "image slider for WordPress. Seriously!"
 msgstr ""
 
-#: cryout-serious-slider.php:237
+#: cryout-serious-slider.php:239
 msgid "About"
 msgstr ""
 
-#: cryout-serious-slider.php:258
+#: cryout-serious-slider.php:260
 msgid "About Plugin"
 msgstr ""
 
@@ -58,7 +58,7 @@ msgstr ""
 msgid "Add New Slider"
 msgstr ""
 
-#: cryout-serious-slider.php:175 cryout-serious-slider.php:826
+#: cryout-serious-slider.php:177 cryout-serious-slider.php:829
 msgid "Add Slider"
 msgstr ""
 
@@ -137,7 +137,7 @@ msgstr ""
 msgid "by order value"
 msgstr ""
 
-#: cryout-serious-slider.php:173
+#: cryout-serious-slider.php:175
 msgid "Cancel"
 msgstr ""
 
@@ -178,10 +178,6 @@ msgstr ""
 msgid "Change image for \"%s\""
 msgstr ""
 
-#: cryout-serious-slider.php:269
-msgid "Changelog"
-msgstr ""
-
 #: inc/taxmeta.php:47
 msgid "Contain Images"
 msgstr ""
@@ -199,7 +195,7 @@ msgid "Cryout Creations"
 msgstr ""
 
 #. Name of the plugin
-#: cryout-serious-slider.php:170 cryout-serious-slider.php:882
+#: cryout-serious-slider.php:172 cryout-serious-slider.php:885
 msgid "Cryout Serious Slider"
 msgstr ""
 
@@ -263,7 +259,7 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: cryout-serious-slider.php:169
+#: cryout-serious-slider.php:171
 msgid "Error retrieving sliders"
 msgstr ""
 
@@ -303,11 +299,11 @@ msgstr ""
 msgid "https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider"
 msgstr ""
 
-#: cryout-serious-slider.php:824
+#: cryout-serious-slider.php:827
 msgid "Insert Serious Slider into post"
 msgstr ""
 
-#: cryout-serious-slider.php:172
+#: cryout-serious-slider.php:174
 msgid "Insert Slider"
 msgstr ""
 
@@ -380,7 +376,7 @@ msgstr ""
 msgid "New Slider"
 msgstr ""
 
-#: inc/shortcodes.php:361
+#: inc/shortcodes.php:362
 msgid "Next Slide"
 msgstr ""
 
@@ -445,10 +441,6 @@ msgstr ""
 msgid "Plugin Homepage"
 msgstr ""
 
-#: cryout-serious-slider.php:267
-msgid "Plugin homepage"
-msgstr ""
-
 #: cryout-serious-slider.php:469
 msgctxt "post type general name"
 msgid "Slides"
@@ -459,7 +451,7 @@ msgctxt "post type singular name"
 msgid "Slide"
 msgstr ""
 
-#: inc/shortcodes.php:357
+#: inc/shortcodes.php:358
 msgid "Previous Slide"
 msgstr ""
 
@@ -488,7 +480,7 @@ msgstr ""
 msgid "Responsiveness"
 msgstr ""
 
-#: cryout-serious-slider.php:168
+#: cryout-serious-slider.php:170
 msgid "Retrieving sliders..."
 msgstr ""
 
@@ -524,7 +516,7 @@ msgstr ""
 msgid "Select Images"
 msgstr ""
 
-#: cryout-serious-slider.php:174
+#: cryout-serious-slider.php:176
 msgid "Select Slider"
 msgstr ""
 
@@ -538,7 +530,7 @@ msgctxt "select terms"
 msgid "Select %s"
 msgstr ""
 
-#: cryout-serious-slider.php:128 cryout-serious-slider.php:171
+#: cryout-serious-slider.php:130 cryout-serious-slider.php:173
 msgid "Serious Slider"
 msgstr ""
 
@@ -630,7 +622,7 @@ msgstr ""
 msgid "Support Forum"
 msgstr ""
 
-#: cryout-serious-slider.php:268
+#: cryout-serious-slider.php:269
 msgid "Support forum"
 msgstr ""
 
@@ -660,7 +652,7 @@ msgstr ""
 msgid "Text Style"
 msgstr ""
 
-#: cryout-serious-slider.php:883
+#: cryout-serious-slider.php:886
 msgid ""
 "This plugin doesn't collect any kind of data from either website visitors or "
 "administrators."
@@ -719,6 +711,10 @@ msgstr ""
 
 #: cryout-serious-slider.php:477
 msgid "View Slide"
+msgstr ""
+
+#: cryout-serious-slider.php:268
+msgid "Visit plugin site"
 msgstr ""
 
 #: inc/taxmeta.php:56
