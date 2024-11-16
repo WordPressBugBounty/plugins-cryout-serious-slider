@@ -54,13 +54,16 @@ class Cryout_Serious_Slider_Shortcode {
 
 		global $cryout_serious_slider;
 
-		// exit silently if slider is not defined
-		if ( empty($attr['id'])) { return; }
+		// exit silently if slider id is not defined
+		if ( empty($attr['id'])) { return; } 
+		
+		$sid = intval($attr['id']); 								// slider cpt id from backend
+		$cid = sprintf( '%d-rnd%.4d', abs($sid), rand(100,9999) );	// slider div id on frontend (includes random number for uniqueness)
 
-		$options = apply_filters('cryout_serious_slider_shortcode_attributes', $this->shortcode_options( $attr['id'] ), $attr, $attr['id']);
+		$options = apply_filters('cryout_serious_slider_shortcode_attributes', $this->shortcode_options( $sid ), $attr, $sid);
 		extract($options);
 
-		if (!empty($attr['count'])) $count = esc_attr($attr['count']); else $count = -1;
+		if (!empty($attr['count'])) $count = intval($attr['count']); else $count = -1;
 
 		$hidetitle = ( !empty($hidetitles) || !empty($attr['hidetitle']) );
 		$hidecaption = !empty($attr['hidecaption']);
@@ -99,9 +102,6 @@ class Cryout_Serious_Slider_Shortcode {
 		$slider_classes[] = 'seriousslider-textstyle-' . $textstyle;
 		$slider_classes = implode(' ', $slider_classes);
 
-
-		$cid = abs($attr['id']).'-rnd'.rand(1000,9999);
-
 		$the_query = new WP_Query(
 			array(
 				'post_type' => array( $cryout_serious_slider->posttype ),
@@ -119,7 +119,7 @@ class Cryout_Serious_Slider_Shortcode {
 		);
 
 		$counter = 0;
-		$this->id = $attr['id'];
+		$this->id = $sid;
 		$this->cid = $cid;
 
 		ob_start(); ?>
@@ -279,7 +279,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 		if ( $the_query->have_posts() ):
 		ob_start(); ?>
-		<div id="serious-slider-<?php echo $cid ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo $cid ?> cryout-serious-slider-<?php echo $attr['id'] ?> <?php echo $slider_classes ?>" data-ride="seriousslider">
+		<div id="serious-slider-<?php echo $cid ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo $cid ?> cryout-serious-slider-<?php echo $sid ?> <?php echo $slider_classes ?>" data-ride="seriousslider">
 			<div class="seriousslider-inner" role="listbox">
 
 			<?php while ($the_query->have_posts()):

@@ -2,7 +2,7 @@
 Plugin Name: Cryout Serious Slider
 Plugin URI: https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider
 Description: A free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
-Version: 1.2.6
+Version: 1.2.7
 Author: Cryout Creations
 Author URI: https://www.cryoutcreations.eu
 Text Domain: cryout-serious-slider
@@ -15,7 +15,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 class Cryout_Serious_Slider {
 
-	public $version = "1.2.6";
+	public $version = "1.2.7";
 	public $options = array();
 	public $shortcode_tag = 'serious-slider';
 	public $mce_tag = 'serious_slider';

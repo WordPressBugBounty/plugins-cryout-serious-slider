@@ -8,7 +8,7 @@ Text Domain: cryout-serious-slider
 Requires at least: 4.5
 Requires PHP: 5.6
 Tested up to: 6.6
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 
 Serious Slider is a free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
 
@@ -99,6 +99,12 @@ Serious Slider works with all WordPress themes and has been designed to integrat
 
 
 == Changelog ==
+
+= 1.2.7 =
+*Release date - 2024.11.16*
+
+* Fixed insufficient sanitization on shortcode parameters to address an XSS vulnerability that could be exploited by a malicious user with at least contributor level access - reported by Bob from WPScan
+* Confirmed compatibility with PHP 8.3
 
 = 1.2.6 =
 *Release date - 2024.10.24*
