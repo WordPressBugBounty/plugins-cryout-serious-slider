@@ -10,7 +10,7 @@ jQuery(document).ready( function() {
 	});
 	
 	/* meta color picker */
-	if (jQuery.isFunction(jQuery.fn.wpColorPicker)) {
+	if (typeof jQuery.fn.wpColorPicker === 'function') {
 		jQuery('input[name*="cryout_serious_slider_accent"]').wpColorPicker();
 	}
 	
@@ -116,6 +116,7 @@ jQuery(document).ready(function($){
 	/* Tabs */
 	jQuery( function() {
       jQuery( "#seriousslider-tabs" ).tabs();
+	  if ( ! jQuery('a#new-slider-button').is(':visible') ) { jQuery( "div.seriousslider-new-slider-wrapper" ).show() };
     } );
 
 	/* Image selector */
@@ -169,4 +170,71 @@ jQuery(document).ready(function($){
 	});
 });
 
-// FIN
+/* Reset taxonomy screen on success */
+jQuery(document).on('ajaxComplete', function(event, xhr, settings) {
+	if (!settings || !settings.data) {
+		return;
+	}
+	var $form = jQuery('#addtag');
+	if (
+		settings.data.indexOf('action=add-tag') !== -1 &&
+		settings.data.indexOf('taxonomy=cryout_serious_slider_category') !== -1
+	) {
+		const responseText = xhr.responseText;
+
+		if (responseText.includes('Item added.')) {
+			$form[0].reset();
+			jQuery('.seriousslider-new-slider-wrapper').slideUp( 100 );
+			jQuery('.seriousslider-new-slider-wrapper').parent().children('.submit').slideUp('fast');
+			jQuery('.seriousslider-new-slider-button').slideDown( 1 );
+
+			jQuery('.seriousslider-media-container').empty();
+			jQuery('.cryout-serious-slider-imagelist').val('');
+			resetSeriousSliderFields(CRYOUT_MCE_LOCALIZED.slider_defaults);
+		}
+	}
+});
+
+function resetSeriousSliderFields(defaults) {
+    var $form = jQuery('#addtag');
+
+    Object.keys(defaults).forEach(function(key) {
+        var $field = $form.find('[name="' + key + '"]');
+        if (!$field.length) return;
+
+        var def = defaults[key];
+
+        /* wpcolorpicker */
+        if ($field.hasClass('wp-color-picker')) {
+			$field.val(def);
+			$field.closest('.wp-picker-container')
+				  .find('.wp-color-result')
+				  .css('background-color', def);
+			$field.wpColorPicker('color', def);
+			return;
+		}
+
+        /* checkbox */
+        if ($field.is(':checkbox')) {
+            $field.prop('checked', !!def);
+            return;
+        }
+
+        /* radio group */
+        if ($field.is(':radio')) {
+            $form.find('[name="' + key + '"][value="' + def + '"]').prop('checked', true);
+            return;
+        }
+
+        /* select */
+        if ($field.is('select')) {
+            $field.val(def).trigger('change');
+            return;
+        }
+
+        /* other input */
+        $field.val(def);
+    });
+}
+
+/* FIN */

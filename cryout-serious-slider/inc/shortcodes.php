@@ -29,22 +29,20 @@ class Cryout_Serious_Slider_Shortcode {
 		$options = $this->shortcode_options($sid);
 		foreach ($options as $id => $opt) ${$id} = $opt;
 
-		ob_start();
-		?><style type="text/css">
-			/* cryout serious slider styles */
-		<?php echo implode("\n", $this->custom_style); ?>
-		</style><?php
-		$custom_style = ob_get_clean();
-
-		echo preg_replace( '/([\n\s])+/', ' ', $custom_style );
+		printf( '<style type="text/css">%2$s /* cryout serious slider styles */ %2$s %1$s %2$s</style>', 
+			wp_kses( 
+				preg_replace( '/([\n\s])+/', ' ', implode(' ', $this->custom_style) ),
+				array()
+			),
+			PHP_EOL
+		);
 	} // shortcode_slyle()
 
 	function shortcode_script() {
 		ob_start();
-		?>
-		<script type="text/javascript">
+		?><script type="text/javascript">
 			/* cryout serious slider scripts */
-		<?php echo implode("\n", $this->custom_script); ?>
+		<?php echo wp_kses( implode(PHP_EOL, $this->custom_script ), array() ); ?>
 		</script>
 		<?php
 		ob_end_flush();
@@ -57,8 +55,8 @@ class Cryout_Serious_Slider_Shortcode {
 		// exit silently if slider id is not defined
 		if ( empty($attr['id'])) { return; } 
 		
-		$sid = intval($attr['id']); 								// slider cpt id from backend
-		$cid = sprintf( '%d-rnd%.4d', abs($sid), rand(100,9999) );	// slider div id on frontend (includes random number for uniqueness)
+		$sid = intval($attr['id']); 									// slider cpt id from backend
+		$cid = sprintf( '%d-rnd%.4d', abs($sid), wp_rand(1000,9999) );	// slider div id on frontend (includes random number for uniqueness)
 
 		$options = apply_filters('cryout_serious_slider_shortcode_attributes', $this->shortcode_options( $sid ), $attr, $sid);
 		extract($options);
@@ -123,18 +121,23 @@ class Cryout_Serious_Slider_Shortcode {
 		$this->cid = $cid;
 
 		ob_start(); ?>
-			.serious-slider-<?php echo $cid ?> { max-width: <?php echo intval( $width ); ?>px; }
-			.serious-slider-<?php echo $cid ?>.seriousslider-sizing1, .serious-slider-<?php echo $cid ?>.seriousslider-sizing1 img { max-height: <?php echo intval( $height ); ?>px;  }
-			.serious-slider-<?php echo $cid ?>.seriousslider-sizing2, .serious-slider-<?php echo $cid ?>.seriousslider-sizing2 img.item-image { height: <?php echo intval( $height ); ?>px;  }
-			.serious-slider-<?php echo $cid ?> .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo round($textsize,2) ?>em; }
+			:root{
+				--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent: <?php echo esc_html( $this->sanitizer->color_clean( $accent ) ); ?>;
+				--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent-rgb: <?php echo esc_html( $this->sanitizer->hex2rgb( $accent, ' ' ) ); ?>;
+			}
+			
+			.serious-slider-<?php echo esc_attr( $cid ) ?> { max-width: <?php echo intval( $width ); ?>px; }
+			.serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing1, .serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing1 img { max-height: <?php echo intval( $height ); ?>px;  }
+			.serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing2, .serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing2 img.item-image { height: <?php echo intval( $height ); ?>px;  }
+			.serious-slider-<?php echo esc_attr( $cid ) ?> .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
 
-			.serious-slider-<?php echo $cid ?> .seriousslider-inner > .item {
-				-webkit-transition-duration: <?php echo round(intval($transition)/1000,2) ?>s;
-				-o-transition-duration: <?php echo round(intval($transition)/1000,2) ?>s;
-				transition-duration: <?php echo round(intval($transition)/1000,2) ?>s; }
+			.serious-slider-<?php echo esc_attr( $cid ) ?> .seriousslider-inner > .item {
+				-webkit-transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s;
+				-o-transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s;
+				transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s; }
 
 			.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
-				background-color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, 0.6);
+				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.6);
 			}
 
 			/* Indicators */
@@ -143,28 +146,28 @@ class Cryout_Serious_Slider_Shortcode {
 			.seriousslider-tall .seriousslider-indicators li.active,
 			.seriousslider-captionleft .seriousslider-indicators li.active,
 			.seriousslider-captionbottom .seriousslider-indicators li.active {
-				background-color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, 0.8);
+				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.8);
 			}
 
 			/* Arrows */
 			.seriousslider-dark .seriousslider-control:hover .control-arrow,
 			.seriousslider-square .seriousslider-control:hover .control-arrow,
 			.seriousslider-tall .seriousslider-control .control-arrow {
-				background-color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, 0.8);
+				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.8);
 			}
 
 			.seriousslider-tall .seriousslider-control:hover .control-arrow {
-				color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, 1);
+				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 1);
 				background-color: #FFF;
 			}
 
 			.seriousslider-captionbottom .seriousslider-control .control-arrow,
 			.seriousslider-captionleft .seriousslider-control .control-arrow {
-				color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, .8);
+				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, .8);
 			}
 
 			.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
-				color: rgba( <?php echo $this->sanitizer->hex2rgb( $accent ); ?>, 1);
+				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 1);
 			}
 
 			/* Buttons */
@@ -175,12 +178,12 @@ class Cryout_Serious_Slider_Shortcode {
 				/* Light */
 				.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
 				.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					background-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
-					border-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 			<?php break;
@@ -188,7 +191,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 				/* Dark */
 				.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
@@ -196,12 +199,12 @@ class Cryout_Serious_Slider_Shortcode {
 				}
 
 				.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					border-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
-					background-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
-					border-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 			<?php break;
@@ -209,22 +212,22 @@ class Cryout_Serious_Slider_Shortcode {
 
 				/* Square */
 				.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #fff;
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 					background: #FFF;
 				}
 
 				.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
 					color: #fff;
-					background-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 			<?php break;
@@ -232,12 +235,12 @@ class Cryout_Serious_Slider_Shortcode {
 
 				/* Tall */
 				.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #FFF;
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 				.seriousslider-tall .seriousslider-caption-buttons a:hover {
@@ -249,7 +252,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 				/* Left caption */
 				.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
-					color: <?php echo $this->sanitizer->color_clean( $accent ); ?>;
+					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
 				}
 
 			<?php
@@ -261,12 +264,11 @@ class Cryout_Serious_Slider_Shortcode {
 		$this->custom_style[] = ob_get_clean();
 		add_action( 'wp_footer', array($this, 'shortcode_style') );
 		ob_start() ?>
-		var interval = <?php echo $delay ?>/200;
+		var interval = <?php echo intval( $delay ) ?>/200;
 		jQuery(document).ready(function(){
 
-
-			jQuery('#serious-slider-<?php echo $cid ?>').carousel({
-				interval: <?php if ($autoplay) echo intval($delay); else echo 'false'; ?>,
+			jQuery('#serious-slider-<?php echo esc_attr( $cid ) ?>').carousel({
+				interval: <?php if ($autoplay) echo intval( $delay ); else echo 'false'; ?>,
 				pause: '<?php echo intval($hover) ?>',
 				stransition: <?php echo intval($transition) ?>
 			});
@@ -279,7 +281,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 		if ( $the_query->have_posts() ):
 		ob_start(); ?>
-		<div id="serious-slider-<?php echo $cid ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo $cid ?> cryout-serious-slider-<?php echo $sid ?> <?php echo $slider_classes ?>" data-ride="seriousslider">
+		<div id="serious-slider-<?php echo esc_attr( $cid ) ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo esc_attr( $cid ) ?> cryout-serious-slider-<?php echo intval( $sid ) ?> <?php echo wp_kses_data( $slider_classes ) ?>" data-ride="seriousslider">
 			<div class="seriousslider-inner" role="listbox">
 
 			<?php while ($the_query->have_posts()):
@@ -295,13 +297,14 @@ class Cryout_Serious_Slider_Shortcode {
 				if ( !empty($slide_meta['cryout_serious_slider_target'][0]) && $slide_meta['cryout_serious_slider_target'][0] )
 						$meta_target = 'target="_blank"';
 						else $meta_target = '';
-				for ( $i=1; $i<=$this->butts; $i++ ) {
-					if ( !empty($slide_meta['cryout_serious_slider_button'.$i][0]) )
-						${'meta_button'.$i} = $slide_meta['cryout_serious_slider_button'.$i][0]; else ${'meta_button'.$i} = FALSE;
-					if ( !empty($slide_meta['cryout_serious_slider_button'.$i.'_url'][0]) )
-						${'meta_button'.$i.'_url'} = $slide_meta['cryout_serious_slider_button'.$i.'_url'][0]; else ${'meta_button'.$i.'_url'} = '';
-					if ( !empty($slide_meta['cryout_serious_slider_button'.$i.'_target'][0]) && $slide_meta['cryout_serious_slider_button'.$i.'_target'][0] )
-						${'meta_button'.$i.'_target'} = 'target="_blank"'; else ${'meta_button'.$i.'_target'} = '';
+
+				$meta_buttons = array();
+				for ( $i = 1; $i <= $this->butts; $i++ ) {
+					$meta_buttons[ $i ] = array(
+						'label'  => ! empty( $slide_meta[ 'cryout_serious_slider_button' . $i ][0] ) ? sanitize_text_field( $slide_meta[ 'cryout_serious_slider_button' . $i ][0] ) : false,
+						'url'    => ! empty( $slide_meta[ 'cryout_serious_slider_button' . $i . '_url' ][0] ) ? esc_url( $slide_meta[ 'cryout_serious_slider_button' . $i . '_url' ][0] ) : '',
+						'target' => ! empty( $slide_meta[ 'cryout_serious_slider_button' . $i . '_target' ][0] ) ? 'target="_blank"' : '',
+					);
 				}
 
 				$image_data = wp_get_attachment_image_src (get_post_thumbnail_ID( get_the_ID() ), 'full' );
@@ -313,10 +316,10 @@ class Cryout_Serious_Slider_Shortcode {
 
 				?>
 
-			<div class="item slide-<?php echo $counter ?> <?php if ($counter==1) echo 'active' ?>" role="option">
+			<div class="item slide-<?php echo intval( $counter ) ?> <?php if ($counter==1) echo 'active' ?>" role="option">
 				<?php if (!empty($image_data[0])): ?>
-				<a <?php echo $meta_link; ?> <?php echo $meta_target; ?>>
-					<img class="item-image" src="<?php echo $image_data[0] ?>" alt="<?php the_title_attribute(); ?>" <?php echo $sizes ?>>
+				<a <?php echo wp_kses_data( $meta_link ); ?> <?php echo wp_kses_data( $meta_target ); ?>>
+					<img class="item-image" src="<?php echo esc_url( $image_data[0] ) ?>" alt="<?php the_title_attribute(); ?>" <?php echo wp_kses_data( $sizes ) ?>>
 				</a>
 				<?php endif; ?>
 				<?php if (( !empty($slide_title) || !empty($slide_text) ) && !$hidecaption): ?>
@@ -326,8 +329,8 @@ class Cryout_Serious_Slider_Shortcode {
 						<?php if (!empty($slide_text)) { ?><div class="seriousslider-caption-text"><?php the_content() ?></div><?php } ?>
 						<div class="seriousslider-caption-buttons">
 							<?php for ( $i=1; $i<=$this->butts; $i++ ) { ?>
-								<?php if ( !empty(${'meta_button'.$i}) ) { ?>
-									<a class="seriousslider-button" href="<?php echo esc_url( ${'meta_button'.$i.'_url'}) ?>" <?php echo ${'meta_button'.$i.'_target'} ?>><?php echo esc_attr( ${'meta_button'.$i} ) ?></a>
+								<?php if ( !empty($meta_button[$i]['label']) ) { ?>
+									<a class="seriousslider-button" href="<?php echo esc_url( $meta_button[$i]['url']) ?>" <?php echo wp_kses_data( $meta_button[$i]['target'] ) ?>><?php echo esc_attr( $meta_button[$i]['label'] ) ?></a>
 								<?php } ?>
 							<?php } ?>
 						</div>
@@ -348,22 +351,22 @@ class Cryout_Serious_Slider_Shortcode {
 			<div class="seriousslider-indicators">
 				<ol class="seriousslider-indicators-inside">
 					<?php for ($i=0;$i<$counter;$i++) { ?>
-					<li data-target="#serious-slider-<?php echo $cid ?>" data-slide-to="<?php echo $i?>" <?php if ($i==0) echo 'class="active"' ?>></li>
+					<li data-target="#serious-slider-<?php echo intval( $cid ) ?>" data-slide-to="<?php echo intval($i) ?>" <?php if ($i==0) echo 'class="active"' ?>></li>
 					<?php } ?>
 				</ol>
 			</div>
 
-			<button class="left seriousslider-control" data-target="#serious-slider-<?php echo $cid ?>" role="button" data-slide="prev">
+			<button class="left seriousslider-control" data-target="#serious-slider-<?php echo esc_attr( $cid ) ?>" role="button" data-slide="prev">
 			  <span class="sicon-prev control-arrow" aria-hidden="true"></span>
-			  <span class="sr-only"><?php _e('Previous Slide','cryout-serious-slider') ?></span>
+			  <span class="sr-only"><?php esc_html_e('Previous Slide','cryout-serious-slider') ?></span>
 			</button>
-			<button class="right seriousslider-control" data-target="#serious-slider-<?php echo $cid; ?>" role="button" data-slide="next">
+			<button class="right seriousslider-control" data-target="#serious-slider-<?php echo esc_attr( $cid ); ?>" role="button" data-slide="next">
 			  <span class="sicon-next control-arrow" aria-hidden="true"></span>
-			  <span class="sr-only"><?php _e('Next Slide','cryout-serious-slider') ?></span>
+			  <span class="sr-only"><?php esc_html_e('Next Slide','cryout-serious-slider') ?></span>
 			</button>
 		</div>
 		<?php
-		wp_reset_query(); /* clean up the query */
+		wp_reset_postdata(); /* clean up the query */
 		return ob_get_clean();
 		endif; ?>
 		<!-- end cryout serious slider -->

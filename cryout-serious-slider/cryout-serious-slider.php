@@ -2,7 +2,7 @@
 Plugin Name: Cryout Serious Slider
 Plugin URI: https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider
 Description: A free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
-Version: 1.2.7
+Version: 1.3.0
 Author: Cryout Creations
 Author URI: https://www.cryoutcreations.eu
 Text Domain: cryout-serious-slider
@@ -15,7 +15,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 class Cryout_Serious_Slider {
 
-	public $version = "1.2.7";
+	public $version = "1.3.0";
 	public $options = array();
 	public $shortcode_tag = 'serious-slider';
 	public $mce_tag = 'serious_slider';
@@ -78,6 +78,9 @@ class Cryout_Serious_Slider {
 		// cpt and taxonomy
 		add_action( 'init', array( $this, 'register_post_types' ) );
 		add_action( 'setup_theme', array( $this, 'register_taxonomies' ) );
+
+		// _just_in_time localization
+		add_action( 'init', array( $this, 'load_localization' ), 20 );
 		
 		// force support in polylang
 		add_filter( 'pll_get_post_types', array( $this, 'pll_post_types' ) );
@@ -96,8 +99,16 @@ class Cryout_Serious_Slider {
 	 * the quick image selection feature
 	 */
 	public function generate_slider( $term_id, $tt_id, $taxonomy ) {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['_wpnonce_add-tag'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash($_POST['_wpnonce_add-tag']) ), 'add-tag' ) ) {
+			return;
+		}
+
 		if ( !empty($_POST['cryout_serious_slider_imagelist']) ) {
-			$image_list = esc_attr( $_POST['cryout_serious_slider_imagelist'] );
+			$image_list = sanitize_text_field( wp_unslash( $_POST['cryout_serious_slider_imagelist'] ) );
 			$image_list = explode( ',', $image_list );
 			foreach ($image_list as $image_id) {
 				// fetch image info
@@ -166,26 +177,9 @@ class Cryout_Serious_Slider {
 
 			// mce slider button
 			add_action( 'media_buttons', array( $this, 'media_slider_button' ) );
-			$localized_mce_strings = array(
-				'text_retrieving_sliders' => __('Retrieving sliders...', 'cryout-serious-slider'),
-				'text_retrieving_sliders_error' => __('Error retrieving sliders', 'cryout-serious-slider'),
-				'text_serious_slider' => __('Cryout Serious Slider', 'cryout-serious-slider'),
-				'text_serious_slider_tooltip' => __('Serious Slider', 'cryout-serious-slider'),
-				'text_insert_slider' => __('Insert Slider', 'cryout-serious-slider'),
-				'text_cancel' => __('Cancel', 'cryout-serious-slider'),
-				'text_select_slider' => __('Select Slider', 'cryout-serious-slider'),
-				'text_add_slider' => __('Add Slider', 'cryout-serious-slider'),
-				'nonce' => wp_create_nonce( 'cryout-sslider-column-image' ),
-			);
-
-			wp_enqueue_script( 'cryout-serious-slider', plugins_url( 'resources/backend.js', __FILE__ ), array('wp-color-picker'), $this->version );
-			wp_enqueue_script( 'jquery-ui-tabs' );
-			wp_localize_script( 'cryout-serious-slider', 'cryout_serious_slider_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
-			wp_localize_script( 'cryout-serious-slider', 'CRYOUT_MCE_LOCALIZED', $localized_mce_strings );
 
 			// ajax handling for slider parameters in shortcode button generator
 			add_action( 'wp_ajax_cryout_serious_slider_ajax', array( $this, 'get_sliders_json' ) ); // auth users
-			add_action( 'wp_ajax_nopriv_cryout_serious_slider_ajax', array( $this, 'get_sliders_json' ) ); // no auth users
 
 			// ajax handling for slider image
 			add_action( 'wp_ajax_cryout_serious_slider_set_image', array( $this, 'ajax_set_image' ) );
@@ -216,12 +210,12 @@ class Cryout_Serious_Slider {
 	public function enqueue_scripts() {
 		if(version_compare(get_bloginfo('version'),'5.6', '<') ) {
 			// jQuery-mobile 1.4.5 for WP < 5.6
-			wp_enqueue_script( 'cryout-serious-slider-jquerymobile', plugins_url( 'resources/jquery.mobile.custom-1.4.5.min.js', __FILE__ ), array('jquery'), $this->version );
+			wp_enqueue_script( 'cryout-serious-slider-jquerymobile', plugins_url( 'resources/jquery.mobile.custom-1.4.5.min.js', __FILE__ ), array('jquery'), $this->version, array('strategy'  => 'defer', 'in_footer' => true) );
 		} else {
 			// jQuery-mobile 1.5.0-rc for WP 5.6 with jQuery 3.5 and no jQuery-Migrate
-			wp_enqueue_script( 'cryout-serious-slider-jquerymobile', plugins_url( 'resources/jquery.mobile.custom.min.js', __FILE__ ), array('jquery'), $this->version );
+			wp_enqueue_script( 'cryout-serious-slider-jquerymobile', plugins_url( 'resources/jquery.mobile.custom.min.js', __FILE__ ), array('jquery'), $this->version, array('strategy'  => 'defer', 'in_footer' => true) );
 		}
-		wp_enqueue_script( 'cryout-serious-slider-script', plugins_url( 'resources/slider.js', __FILE__ ), NULL, $this->version );
+		wp_enqueue_script( 'cryout-serious-slider-script', plugins_url( 'resources/slider.js', __FILE__ ), NULL, $this->version, array('strategy'  => 'defer', 'in_footer' => true) );
 	} // enqueue_scripts()
 
 	public function enqueue_styles() {
@@ -242,16 +236,16 @@ class Cryout_Serious_Slider {
 	// about page callback
 	public function plugin_page() {
 		if (current_user_can('edit_others_posts')) {
-			if ( !empty( $_GET['add_sample_content'] ) && check_admin_referer( 'sampleslider' ) ) {
+			if ( isset( $_GET['add_sample_content'] ) && check_admin_referer( 'sampleslider' ) ) {
 				// skip creation if slider already exists
-				if ( function_exists( 'term_exists' ) ) $sample_slider_id = term_exists('Sample Slider'); // wp 6.0+
-												   else $sample_slider_id = is_term('Sample Slider'); // backwards compat
+				$sample_slider_id = term_exists('Sample Slider');
 				if ( empty( $sample_slider_id ) ) {
 					$this->justsampled = true;
 					include_once( $this->plugin_dir . 'demo/demo-content.php' );
 				}
 			}
 		}
+		$add_sample_content = ! empty( $_REQUEST['add_sample_content'] ); 
 		require_once( $this->plugin_dir . 'inc/about.php' );
 	} // plugin_page()
 
@@ -288,6 +282,9 @@ class Cryout_Serious_Slider {
 
 	/* return sliders list for mce insert window */
 	public function get_sliders_json() {
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die();
+		}
 		$sliders = $this->get_sliders();
 		echo json_encode($sliders);
 		wp_die();
@@ -295,7 +292,7 @@ class Cryout_Serious_Slider {
 
 	/* prototype slider retrieval function */
 	public function get_sliders() {
-		$data = get_terms( $this->taxonomy, array( 'hide_empty' => false ) );
+		$data = get_terms( array( 'taxonomy' => $this->taxonomy, 'hide_empty' => false ) );
 
 		$sliders = array();
 		foreach ($data as $slider) {
@@ -309,7 +306,7 @@ class Cryout_Serious_Slider {
 
 	/* theme compatibility function */
 	public function get_sliders_list() {
-		$data = get_terms( $this->taxonomy, array( 'hide_empty' => false ) );
+		$data = get_terms( array( 'taxonomy' => $this->taxonomy, 'hide_empty' => false ) );
 
 		$sliders = array();
 		foreach ($data as $slider) {
@@ -330,11 +327,11 @@ class Cryout_Serious_Slider {
 		$tax_name = esc_attr( $r['taxonomy'] );
 		$taxonomy = get_taxonomy( $r['taxonomy'] );
 		?>
-		<div id="taxonomy-<?php echo $tax_name; ?>" class="categorydiv">
+		<div id="taxonomy-<?php echo esc_attr($tax_name); ?>" class="categorydiv">
 				<?php
 				$name = ( $tax_name == 'category' ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
 				?>
-				<ul id="<?php echo $tax_name; ?>_selector" data-wp-lists="list:<?php echo $tax_name; ?>" class="form-no-clear">
+				<ul id="<?php echo esc_attr($tax_name); ?>_selector" data-wp-lists="list:<?php echo esc_attr($tax_name); ?>" class="form-no-clear">
 					<?php
 						$cat_dropdown_args = array(
 							'taxonomy'         => $tax_name,
@@ -349,7 +346,7 @@ class Cryout_Serious_Slider {
 						wp_dropdown_categories( $cat_dropdown_args );
 					?>
 				</ul>
-				<a class="taxonomy-add-new" href="edit-tags.php?taxonomy=<?php echo $this->taxonomy ?>&post_type=<?php echo $this->posttype; ?>" id=""><?php _e(
+				<a class="taxonomy-add-new" href="edit-tags.php?taxonomy=<?php echo esc_attr($this->taxonomy) ?>&post_type=<?php echo esc_attr($this->posttype); ?>" id=""><?php esc_html_e(
 				'Manage Sliders', 'cryout-serious-slider') ?></a>
 		</div>
 		<?php
@@ -358,55 +355,68 @@ class Cryout_Serious_Slider {
     // set slide image via ajax
     public function ajax_set_image() {
 
-		if ( ! isset( $_POST[ 'cryout_sslider_column_nonce' ] ) || ! wp_verify_nonce( $_POST[ 'cryout_sslider_column_nonce' ], 'cryout-sslider-column-image' ) ) {
-			die( __( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
+		if ( ! isset( $_POST[ 'cryout_sslider_column_nonce' ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash($_POST[ 'cryout_sslider_column_nonce' ]) ), 'cryout-sslider-column-image' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
 		}
-		if ( isset( $_POST[ 'post_id' ] ) && isset( $_POST[ 'thumbnail_id' ] ) ) {
+
+		if ( isset( $_POST[ 'post_id' ] ) && isset( $_POST[ 'thumbnail_id' ] ) && is_array( $_POST['post_id'] ) && isset( $_POST['post_id'][0] ) ) {
 			// sanitze ids
 			$post_id		= absint( $_POST[ 'post_id' ][ 0 ] );
 			$thumbnail_id	= absint( $_POST[ 'thumbnail_id' ] );
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				wp_die( esc_html__( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
+			}
+
 			// try to set thumbnail; returns true if successful
 			$success = set_post_thumbnail( $post_id, $thumbnail_id );
 			if ( $success ) {
 
 				$post_title = _draft_or_post_title( $post_id );
 				// image selection link
-				$html .= sprintf(
+				$html = sprintf(
 					'<a href="%1$s" id="sslide_set_%2$s" class="sslide_set_link" title="%3$s">%4$s<br />%5$s</a>',
 					esc_url( get_upload_iframe_src( 'image', $post_id ) ),
 					$post_id,
-					esc_attr( sprintf( __( 'Change image for "%s"', 'cryout-serious-slider' ), $post_title ) ),
+					/* translators: reference post title */
+					sprintf( esc_attr__( 'Change image for "%s"', 'cryout-serious-slider' ), $post_title ),
 					get_the_post_thumbnail( $post_id, 'thumbnail' ),
-					esc_html( __( 'Change Image', 'cryout-serious-slider' ) )
+					esc_html__( 'Change Image', 'cryout-serious-slider' )
 				);
 
 				// 'remove' image link
 				$html .= sprintf(
 					'<br><a href="#" id="sslide_delete_%1$s" class="sslide_delete_link hide-if-no-js" title="%2$s">%3$s</a>',
 					$post_id,
-					esc_attr( sprintf( __( 'Remove image from "%s"', 'cryout-serious-slider' ), $post_title ) ),
-					esc_html( __( 'Remove Image', 'cryout-serious-slider') )
+					/* translators: reference post title */
+					sprintf( esc_attr__( 'Remove image from "%s"', 'cryout-serious-slider' ), $post_title ),
+					esc_html__( 'Remove Image', 'cryout-serious-slider' )
 				);
 
 				// return response to Ajax script
-				echo $html;
+				echo wp_kses_post( $html );
 
 			} else {
 				// return error message to Ajax script
 				esc_html_e( 'Item not added.', 'cryout-serious-slider' );
 			}
 		}
-		die();
+		wp_die();
     } // ajax_set_image()
 
     // remove slider image via ajax
     public function ajax_delete_image() {
-		if ( ! isset( $_POST[ 'cryout_sslider_column_nonce' ] ) || ! wp_verify_nonce( $_POST[ 'cryout_sslider_column_nonce' ], 'cryout-sslider-column-image' ) ) {
-			die( __( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
+		if ( ! isset( $_POST[ 'cryout_sslider_column_nonce' ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ 'cryout_sslider_column_nonce' ] ) ), 'cryout-sslider-column-image' ) ) {
+			wp_die( esc_html__( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
 		}
-		if ( isset( $_POST[ 'post_id' ] ) ) {
+		if ( isset( $_POST[ 'post_id' ] ) && is_array( $_POST['post_id'] ) && isset( $_POST['post_id'][0] ) ) {
 			// sanitze post id
 			$post_id = absint( $_POST[ 'post_id' ][ 0 ] );
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				wp_die( esc_html__( 'Sorry, you are not allowed to edit this item.', 'cryout-serious-slider' ) );
+			}
+
 			// try to delete thumbnail; returns true if successful
 			$success = delete_post_thumbnail( $post_id );
 			if ( $success ) {
@@ -416,21 +426,21 @@ class Cryout_Serious_Slider {
 					'%5$s<br><a href="%1$s" id="sslide_set_%2$s" class="sslide_set_link" title="%3$s">%4$s</a>',
 					esc_url( get_upload_iframe_src( 'image', $post_id ) ),
 					$post_id,
-					esc_attr( sprintf( __( 'Set image for "%s"', 'quick-featured-images' ), _draft_or_post_title( $post_id ) ) ),
-					esc_html( __( 'Set Image', 'cryout-serious-slider' ) ),
-					__( 'None', 'cryout-serious-slider' )
+					/* translators: reference post title */
+					sprintf( esc_attr__( 'Set image for "%s"', 'cryout-serious-slider' ), _draft_or_post_title( $post_id ) ),
+					esc_html__( 'Set Image', 'cryout-serious-slider' ),
+					esc_html__( 'None', 'cryout-serious-slider' )
 				);
 
 				// return response to Ajax script
-				echo $html;
+				echo wp_kses_post( $html );
 
 			} else {
 				// return error message to Ajax script
-				$text = 'Item not updated.';
-				esc_html_e( $text );
+				esc_html_e( 'Item not updated.', 'cryout-serious-slider' );
 			}
 		}
-		die();
+		wp_die();
     } // ajax_delete_image()
 
 	/* removes autop filtering from the slider's cpt - disabled in 1.0.4 */
@@ -453,7 +463,6 @@ class Cryout_Serious_Slider {
 			'show_admin_column' => true,
 			'show_in_admin_bar'	=> true,
 			'query_var' 		=> true,
-			'description' 		=> __( 'Description.', 'cryout-serious-slider' ),
 			'show_in_nav_menus' => false,
 			'menu_position' 	=> 21,
 			'menu_icon' 		=> plugins_url('/resources/images/serious-slider-icon.svg',__FILE__),
@@ -466,25 +475,25 @@ class Cryout_Serious_Slider {
 					'page-attributes',
 			),
 			'labels' 				=> array(
-					'name'               => _x( 'Slides', 'post type general name', 'cryout-serious-slider' ),
-					'singular_name'      => _x( 'Slide', 'post type singular name', 'cryout-serious-slider' ),
-					'menu_name'          => _x( 'Serious Slider', 'admin menu', 'cryout-serious-slider' ),
-					'name_admin_bar'     => _x( 'Serious Slide', 'add new on admin bar', 'cryout-serious-slider' ),
-					'add_new'            => _x( 'Add New Slide', 'and new in menu', 'cryout-serious-slider' ),
-					'add_new_item'       => __( 'Add New Slide', 'cryout-serious-slider' ),
-					'new_item'           => __( 'New Slide', 'cryout-serious-slider' ),
-					'edit_item'          => __( 'Edit Slide', 'cryout-serious-slider' ),
-					'view_item'          => __( 'View Slide', 'cryout-serious-slider' ),
-					'all_items'          => __( 'All Slides', 'cryout-serious-slider' ),
-					'search_items'       => __( 'Search Slide', 'cryout-serious-slider' ),
-					'parent_item_colon'  => __( 'Parent Slides:', 'cryout-serious-slider' ),
-					'item_published'	 => __( 'Slide published.', 'cryout-serious-slider' ),
-					'item_published_privately' => __( 'Slide published privately.', 'cryout-serious-slider' ),
-					'item_reverted_to_draft'   => __( 'Slide reverted to draft.', 'cryout-serious-slider' ),
-					'item_scheduled'     => __( 'Slide scheduled.', 'cryout-serious-slider' ),
-					'item_updated'       => __( 'Slide updated.', 'cryout-serious-slider' ),
-					'not_found'          => sprintf( __( 'No slides found. Go ahead and <a href="%1$s">add some</a> or <a href="%2$s">load sample content</a>.', 'cryout-serious-slider' ), $this->addnewpage, $this->aboutpage ),
-					'not_found_in_trash' => __( 'No slides found in Trash.', 'cryout-serious-slider' )
+					'name'               => 'Slides',
+					'singular_name'      => 'Slide',
+					'menu_name'          => 'Serious Slider',
+					'name_admin_bar'     => 'Serious Slide',
+					'add_new'            => 'Add New Slide',
+					'add_new_item'       => 'Add New Slide',
+					'new_item'           => 'New Slide',
+					'edit_item'          => 'Edit Slide',
+					'view_item'          => 'View Slide',
+					'all_items'          => 'All Slides',
+					'search_items'       => 'Search Slide',
+					'parent_item_colon'  => 'Parent Slides:',
+					'item_published'	 => 'Slide published.',
+					'item_published_privately' => 'Slide published privately.',
+					'item_reverted_to_draft'   => 'Slide reverted to draft.',
+					'item_scheduled'     => 'Slide scheduled.',
+					'item_updated'       => 'Slide updated.',
+					'not_found'          => 'No slides found',
+					'not_found_in_trash' => 'No slides found in Trash.'
 			),
 			'taxonomies' 			=> array(
 					$this->taxonomy,
@@ -504,20 +513,20 @@ class Cryout_Serious_Slider {
 			'public'			=> false,
 			'hierarchical'      => true,
 			'labels'            => array(
-					'name'              => _x( 'Sliders', 'taxonomy general name', 'cryout-serious-slider' ),
-					'singular_name'     => _x( 'Slider', 'taxonomy singular name', 'cryout-serious-slider' ),
-					'search_items'      => __( 'Search Sliders', 'cryout-serious-slider' ),
-					'all_items'         => __( 'All Sliders', 'cryout-serious-slider' ),
-					'parent_item'       => __( 'Parent Slider', 'cryout-serious-slider' ),
-					'parent_item_colon' => __( 'Parent Slider:', 'cryout-serious-slider' ),
-					'edit_item'         => __( 'Edit Slider', 'cryout-serious-slider' ),
-					'update_item'       => __( 'Update Slider', 'cryout-serious-slider' ),
-					'add_new_item'      => __( 'Add New Slider', 'cryout-serious-slider' ),
-					'new_item_name'     => __( 'New Slider', 'cryout-serious-slider' ),
-					'menu_name'         => __( 'Manage Sliders', 'cryout-serious-slider' ),
-					'not_found'         => __( 'No sliders found', 'cryout-serious-slider' ),
-					'no_terms'			=> __( 'No sliders', 'cryout-serious-slider' ),
-					'back_to_items'     => __( '&larr; Back to Sliders', 'cryout-serious-slider' ),
+					'name'              => 'Sliders',
+					'singular_name'		=> 'Slider',
+					'search_items'      => 'Search Sliders',
+					'all_items'         => 'All Sliders',
+					'parent_item'       => 'Parent Slider',
+					'parent_item_colon' => 'Parent Slider:',
+					'edit_item'         => 'Edit Slider',
+					'update_item'       => 'Update Slider',
+					'add_new_item'      => 'Add New Slider',
+					'new_item_name'     => 'New Slider',
+					'menu_name'         => 'Manage Sliders',
+					'not_found'         => 'No sliders found',
+					'no_terms'			=> 'No sliders',
+					'back_to_items'     => '&larr; Back to Sliders',
 			),
 			'show_ui'           => true,
 			'show_admin_column' => true,
@@ -537,6 +546,60 @@ class Cryout_Serious_Slider {
 
 	} // register_taxonomies()
 	
+	/* Load translations just_in_time */
+	public function load_localization() {
+			global $wp_post_types, $wp_taxonomies;
+
+			// ctp labels
+			if ( isset( $wp_post_types[ $this->posttype ] ) ) {
+
+				$labels = &$wp_post_types[ $this->posttype ]->labels;
+
+				$labels->name				= _x( 'Slides', 'post type general name', 'cryout-serious-slider' );
+				$labels->singular_name		= _x( 'Slide', 'post type singular name', 'cryout-serious-slider' );
+				$labels->menu_name			= _x( 'Serious Slider', 'admin menu', 'cryout-serious-slider' );
+				$labels->name_admin_bar		= _x( 'Serious Slide', 'add new on admin bar', 'cryout-serious-slider' );
+				$labels->add_new			= _x( 'Add New Slide', 'and new in menu', 'cryout-serious-slider' );
+				$labels->add_new_item		= __( 'Add New Slide', 'cryout-serious-slider' );
+				$labels->new_item			= __( 'New Slide', 'cryout-serious-slider' );
+				$labels->edit_item			= __( 'Edit Slide', 'cryout-serious-slider' );
+				$labels->view_item			= __( 'View Slide', 'cryout-serious-slider' );
+				$labels->all_items			= __( 'All Slides', 'cryout-serious-slider' );
+				$labels->search_items		= __( 'Search Slide', 'cryout-serious-slider' );
+				$labels->parent_item_colon	= __( 'Parent Slides:', 'cryout-serious-slider' );
+				$labels->item_published		= __( 'Slide published.', 'cryout-serious-slider' );
+				$labels->item_published_privately	= __( 'Slide published privately.', 'cryout-serious-slider' );
+				$labels->item_reverted_to_draft		= __( 'Slide reverted to draft.', 'cryout-serious-slider' );
+				$labels->item_scheduled		= __( 'Slide scheduled.', 'cryout-serious-slider' );
+				$labels->item_updated		= __( 'Slide updated.', 'cryout-serious-slider' );
+				/* translators: links to new slides page and plugin about page */
+				$labels->not_found			= sprintf( __( 'No slides found. Go ahead and <a href="%1$s">add some</a> or <a href="%2$s">load sample content</a>.', 'cryout-serious-slider' ), $this->addnewpage, $this->aboutpage );
+				$labels->not_found_in_trash	= __( 'No slides found in Trash.', 'cryout-serious-slider' );
+			}
+
+			// taxonomy labels
+			if ( isset( $wp_taxonomies[ $this->taxonomy ] ) ) {
+
+				$tax_labels = &$wp_taxonomies[ $this->taxonomy ]->labels;
+
+				$tax_labels->name			= _x( 'Sliders', 'taxonomy general name', 'cryout-serious-slider' );
+				$tax_labels->singular_name	= _x( 'Slider', 'taxonomy singular name', 'cryout-serious-slider' );
+				$tax_labels->search_items	= __( 'Search Sliders', 'cryout-serious-slider' );
+				$tax_labels->all_items		= __( 'All Sliders', 'cryout-serious-slider' );
+				$tax_labels->parent_item	= __( 'Parent Slider', 'cryout-serious-slider' );
+				$tax_labels->parent_item_colon	= __( 'Parent Slider:', 'cryout-serious-slider' );
+				$tax_labels->edit_item		= __( 'Edit Slider', 'cryout-serious-slider' );
+				$tax_labels->update_item	= __( 'Update Slider', 'cryout-serious-slider' );
+				$tax_labels->add_new_item	= __( 'Add New Slider', 'cryout-serious-slider' );
+				$tax_labels->new_item_name	= __( 'New Slider', 'cryout-serious-slider' );
+				$tax_labels->menu_name		= __( 'Manage Sliders', 'cryout-serious-slider' );
+				$tax_labels->not_found		= __( 'No sliders found', 'cryout-serious-slider' );
+				$tax_labels->no_terms		= __( 'No sliders', 'cryout-serious-slider' );
+				$tax_labels->back_to_items	= __( '&larr; Back to Sliders', 'cryout-serious-slider' );
+			}
+
+	} // load_localization()
+
 	/**
 	 * Register post type in Polylang
 	 */
@@ -581,19 +644,19 @@ class Cryout_Serious_Slider {
 					$out = array();
 					foreach ( $terms as $term ) {
 						$out[] = sprintf( '<a href="%1$s">%2$s</a><div class="row-actions"><span class="edit"><a href="%3$s">%4$s</a></span></div>',
-							esc_url( add_query_arg( array( 'post_type' => $post->post_type, $this->taxonomy => $term->slug ), 'edit.php' ) ),
+							add_query_arg( array( 'post_type' => $post->post_type, $this->taxonomy => $term->slug ), 'edit.php' ),
 							esc_html( sanitize_term_field( 'name', $term->name, $term->term_id, $this->taxonomy, 'display' ) ),
-							esc_url( add_query_arg( array(  'action' => 'edit', 'taxonomy' => $this->taxonomy, 'tag_ID' => $term->term_id, 'post_type' => $post->post_type ), 'edit-tags.php' ) ),
+							add_query_arg( array(  'action' => 'edit', 'taxonomy' => $this->taxonomy, 'tag_ID' => $term->term_id, 'post_type' => $post->post_type ), 'edit-tags.php' ),
 							__('Edit slider', 'cryout-serious-slider')
 						);
 
 					}
-					echo join( ', ', $out );
+					echo wp_kses_post( join( ' ', $out ) );
 
 				}
 
 				else {
-					_e( 'None', 'cryout-serious-slider' );
+					esc_html_e( 'None', 'cryout-serious-slider' );
 				}
 
 			break;
@@ -610,22 +673,24 @@ class Cryout_Serious_Slider {
 							printf(
 								'<a href="%1$s" id="sslide_set_%2$s" class="sslide_set_link" title="%3$s">%4$s<br />%5$s</a>',
 								esc_url( get_upload_iframe_src( 'image', $post_id ) ),
-								$post_id,
+								intval( $post_id ),
+								/* translators: reference post title */
 								esc_attr( sprintf( __( 'Change image for "%s"', 'cryout-serious-slider' ), $post_title ) ),
-								$thumb,
+								wp_kses_post( $thumb ),
 								esc_html( __( 'Change', 'cryout-serious-slider' ) )
 							);
 
 							// 'remove' image link
 							printf(
 								' / <a href="#" id="sslide_delete_%1$s" class="sslide_delete_link hide-if-no-js" title="%2$s">%3$s</a>',
-								$post_id,
+								intval( $post_id ),
+								/* translators: reference post title */
 								esc_attr( sprintf( __( 'Remove image from "%s"', 'cryout-serious-slider' ), $post_title ) ),
 								esc_html( __( 'Remove', 'cryout-serious-slider') )
 							);
 						} else {
 							// if no edit capatibilities show image only
-							echo $thumb;
+							echo wp_kses_post( $thumb );
 						} // if user can
 					} // if thumb
 				} else {
@@ -634,10 +699,11 @@ class Cryout_Serious_Slider {
 						printf(
 							'%5$s<br><a href="%1$s" id="sslide_set_%2$s" class="sslide_set_link" title="%3$s">%4$s</a>',
 							esc_url( get_upload_iframe_src( 'image', $post_id ) ),
-							$post_id,
-							esc_attr( sprintf( __( 'Set image for "%s"', 'quick-featured-images' ), _draft_or_post_title( $post_id ) ) ),
-							esc_html( __( 'Set Image', 'cryout-serious-slider' ) ),
-							__( 'None', 'cryout-serious-slider' )
+							intval( $post_id ),
+							/* translators: reference post title */
+							esc_attr( sprintf( __( 'Set image for "%s"', 'cryout-serious-slider' ), _draft_or_post_title( $post_id ) ) ),
+							esc_html__( 'Set Image', 'cryout-serious-slider' ),
+							esc_html__( 'None', 'cryout-serious-slider' )
 						);
 					} // if user can
 				} // if thumbnail_id
@@ -647,7 +713,7 @@ class Cryout_Serious_Slider {
 			case 'menu_order':
 
 				$order = $post->menu_order;
-				echo $order;
+				echo intval($order);
 
 			break;
 		}
@@ -672,7 +738,7 @@ class Cryout_Serious_Slider {
 	public function custom_content_taxonomy( $empty, $column, $id ) {
 		switch ($column) {
 			case 'shortcode':
-				echo '[serious-slider id="' . $id . '"]';
+				printf( '[serious-slider id="%s"]', intval($id) );
 				break;
 			default:
 				break;
@@ -692,12 +758,19 @@ class Cryout_Serious_Slider {
 				$tax_obj = get_taxonomy($tax_slug);
 				$tax_name = $tax_obj->labels->name;
 				$terms = get_terms($tax_slug);
-				if (!empty($_GET[$tax_slug])) $filtered_tax = sanitize_text_field($_GET[$tax_slug]); else $filtered_tax = '';
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				if (isset($_GET[$tax_slug])) $filtered_tax = sanitize_text_field(wp_unslash($_GET[$tax_slug])); else $filtered_tax = '';
 				if(count($terms) > 0) {
-					echo "<select name='$tax_slug' id='filter_$tax_slug' class='postform'>";
-					printf( "<option value=''>%s</option>", sprintf( _x('Select %s', 'select terms', 'cryout-serious-slider'), $tax_name ) );
+					printf( '<select name="%1$s" id="filter_%1$s" class="postform">', esc_attr( $tax_slug ) );
+					/* translators: reference taxonomy name */
+					printf( '<option value="">%s</option>', sprintf( esc_html_x('Select %s', 'select terms', 'cryout-serious-slider'), wp_kses_data( $tax_name ) ) );
 					foreach ($terms as $term) {
-						echo '<option value='. $term->slug, $filtered_tax == $term->slug ? ' selected="selected"' : '','>' . $term->name .' (' . $term->count .')</option>';
+						printf( '<option value="%1$s" %2$s>%3$s (%4$s)</option>',
+							esc_attr( $term->slug ),
+							($filtered_tax == $term->slug ? 'selected="selected"' : ''),
+							wp_kses_data( $term->name ),
+							intval( $term->count )
+						);
 					}
 					echo "</select>";
 				}
@@ -725,12 +798,15 @@ class Cryout_Serious_Slider {
 	    global $post;
 		$values = get_post_custom( $post->ID );
 		$text = isset( $values['cryout_serious_slider_link'] ) ? esc_url_raw( $values['cryout_serious_slider_link'][0] ) : '';
-		$check = isset( $values['cryout_serious_slider_target'] ) ? esc_attr( $values['cryout_serious_slider_target'][0] ) : '';
+		$checked = isset( $values['cryout_serious_slider_target'] ) ? esc_attr( $values['cryout_serious_slider_target'][0] ) : '';
 
-		for ($i=1;$i<=$this->butts;$i++) {
-			${'button'.$i} = isset( $values['cryout_serious_slider_button'.$i] ) ? esc_attr( $values['cryout_serious_slider_button'.$i][0] ) : '';
-			${'button'.$i.'_url'} = isset( $values['cryout_serious_slider_button'.$i.'_url'] ) ? esc_url_raw( $values['cryout_serious_slider_button'.$i.'_url'][0] ) : '';
-			${'button'.$i.'_target'} = isset( $values['cryout_serious_slider_button'.$i.'_target'] ) ? esc_attr( $values['cryout_serious_slider_button'.$i.'_target'][0] ) : '';
+		$buttons = array();
+		for ( $i = 1; $i <= $this->butts; $i++ ) {
+			$buttons[ $i ] = array(
+				'label'  => isset( $values[ 'cryout_serious_slider_button' . $i ] ) ? esc_attr( $values[ 'cryout_serious_slider_button' . $i ][0] ) : '',
+				'url'    => isset( $values[ 'cryout_serious_slider_button' . $i . '_url' ] ) ? esc_url_raw( $values[ 'cryout_serious_slider_button' . $i . '_url' ][0] ) : '',
+				'target' => isset( $values[ 'cryout_serious_slider_button' . $i . '_target' ] ) ? esc_attr( $values[ 'cryout_serious_slider_button' . $i . '_target' ][0] ) : '',
+			);
 		}
 
 		require_once( $this->plugin_dir . 'inc/meta.php' );
@@ -740,24 +816,23 @@ class Cryout_Serious_Slider {
 	function metabox_save( $post_id ) {
 		
 		if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
-		if( !isset( $_POST['cryout_serious_slider_meta_nonce'] ) || !wp_verify_nonce( $_POST['cryout_serious_slider_meta_nonce'], 'cryout_serious_slider_meta_nonce' ) ) return;
-		if ( !current_user_can( 'edit_posts' ) ) return;
-		$allowed = '';
+		if( !isset( $_POST['cryout_serious_slider_meta_nonce'] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cryout_serious_slider_meta_nonce'] ) ), 'cryout_serious_slider_meta_nonce' ) ) return;
+		if ( !current_user_can( 'edit_post', $post_id ) ) return;
 
 		// main slide image link & target
 		if( isset( $_POST['cryout_serious_slider_link'] ) )
-			update_post_meta( $post_id, 'cryout_serious_slider_link', esc_url_raw( $_POST['cryout_serious_slider_link'], $allowed ) );
-		$chk = isset( $_POST['cryout_serious_slider_target'] );
-		update_post_meta( $post_id, 'cryout_serious_slider_target', $chk );
+			update_post_meta( $post_id, 'cryout_serious_slider_link', esc_url_raw( wp_unslash( $_POST['cryout_serious_slider_link'] ) ) );
+		$newtab = isset( $_POST['cryout_serious_slider_target'] );
+		update_post_meta( $post_id, 'cryout_serious_slider_target', $newtab );
 
 		// buttons, links and targets
 		for ($i=1;$i<=$this->butts;$i++) {
 			if ( isset( $_POST['cryout_serious_slider_button'.$i] ) )
-				update_post_meta( $post_id, 'cryout_serious_slider_button'.$i, esc_attr( $_POST['cryout_serious_slider_button'.$i] ) );
+				update_post_meta( $post_id, 'cryout_serious_slider_button'.$i, sanitize_text_field( wp_unslash( $_POST['cryout_serious_slider_button'.$i] ) ) );
 			if ( isset( $_POST['cryout_serious_slider_button'.$i.'_url'] ) )
-				update_post_meta( $post_id, 'cryout_serious_slider_button'.$i.'_url', esc_url_raw( $_POST['cryout_serious_slider_button'.$i.'_url'], $allowed ) );
-			${'chk_btn'.$i} = isset( $_POST['cryout_serious_slider_button'.$i.'_target'] );
-			update_post_meta( $post_id, 'cryout_serious_slider_button'.$i.'_target', ${'chk_btn'.$i} );
+				update_post_meta( $post_id, 'cryout_serious_slider_button'.$i.'_url', esc_url_raw( wp_unslash( $_POST['cryout_serious_slider_button'.$i.'_url'] ) ) );
+			${'newtab_btn'.$i} = isset( $_POST['cryout_serious_slider_button'.$i.'_target'] );
+			update_post_meta( $post_id, 'cryout_serious_slider_button'.$i.'_target', ${'newtab_btn'.$i} );
 		}
 
 	} // metabox_save()
@@ -787,16 +862,28 @@ class Cryout_Serious_Slider {
 	} // metatax_main_edit()
 
 	function save_taxonomy_custom_meta( $tid ) {
-		if ( isset( $_POST['term_meta'] ) ) {
+		if ( ! isset( $_POST['cryout_serious_slider_taxmeta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cryout_serious_slider_taxmeta_nonce'] ) ), 'cryout_serious_slider_taxmeta' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'manage_categories' ) ) {
+			return;
+		}
+
+		if ( isset( $_POST['term_meta'] ) && is_array( $_POST['term_meta'] ) ) {
 			$term_meta = get_option( "cryout_serious_slider_{$tid}_meta" );
-			$cat_keys = array_keys( $_POST['term_meta'] );
-			foreach ( $cat_keys as $key ) {
+			if ( ! is_array( $term_meta ) ) {
+				$term_meta = array();
+			};
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$raw_meta = wp_unslash( $_POST['term_meta'] );
+			foreach ( $raw_meta as $key => $value) {
 				// some paramaters are special-er than others
-				if ( $key == 'cryout_serious_slider_textsize' ) $term_meta[$key] = floatval( $_POST['term_meta'][$key] );
-				// the regulars
-				elseif ( isset ( $_POST['term_meta'][$key] ) ) {
-					$term_meta[$key] = sanitize_key($_POST['term_meta'][$key]);
+				if ( ($key == 'cryout_serious_slider_textsize') ) {
+					$term_meta[$key] = floatval( $value );
+					continue; 
 				}
+				// the regulars
+				$term_meta[$key] = sanitize_text_field( $value );
 			}
 			// Save the option array.
 			update_option( "cryout_serious_slider_{$tid}_meta", $term_meta );
@@ -827,7 +914,7 @@ class Cryout_Serious_Slider {
 				__( "Insert Serious Slider into post", "cryout-serious-slider" ),
 				$this->plugin_url . 'resources/images/serious-slider-editor-icon.png',
 				__( 'Add Slider', 'cryout-serious-slider' ) );
-			echo $content; 
+			echo wp_kses_post( $content );
         }
 
     } // media_slider_button()
@@ -837,7 +924,7 @@ class Cryout_Serious_Slider {
 		global $post_type;
 		global $pagenow;
 
-		// don't allow slider shortcode inside slide posts
+		// don't allow slider shortcode-ception
 		if( $this->posttype != $post_type && in_array( $pagenow, array( 'edit.php', 'post-new.php', 'post.php' ) ) ) {
 			// check user permissions
 			if ( !current_user_can( 'edit_posts' ) && !current_user_can( 'edit_pages' ) ) {
@@ -866,10 +953,37 @@ class Cryout_Serious_Slider {
 	function admin_enqueue_scripts($hook){
 		global $post_type;
 		global $pagenow;
+
+		$localized_mce_strings = array(
+			'text_retrieving_sliders' => __('Retrieving sliders...', 'cryout-serious-slider'),
+			'text_retrieving_sliders_error' => __('Error retrieving sliders', 'cryout-serious-slider'),
+			'text_serious_slider' => __('Cryout Serious Slider', 'cryout-serious-slider'),
+			'text_serious_slider_tooltip' => __('Serious Slider', 'cryout-serious-slider'),
+			'text_insert_slider' => __('Insert Slider', 'cryout-serious-slider'),
+			'text_cancel' => __('Cancel', 'cryout-serious-slider'),
+			'text_select_slider' => __('Select Slider', 'cryout-serious-slider'),
+			'text_add_slider' => __('Add Slider', 'cryout-serious-slider'),
+			'nonce' => wp_create_nonce( 'cryout-sslider-column-image' ),
+			'slider_defaults' => json_encode( $this->defaults ),
+		);
+
+		// general script and localized strings on plugin sections only
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ( $hook === $this->thepage ) || ( $post_type === $this->posttype ) || ( $pagenow === 'edit-tags.php' && !empty( $_GET['taxonomy'] ) && ( $_GET['taxonomy'] === $this->taxonomy ) ) ) {
+			wp_enqueue_script( 'cryout-serious-slider', plugins_url( 'resources/backend.js', __FILE__ ), array('wp-color-picker'), $this->version, array('strategy'  => 'defer', 'in_footer' => true) );
+			wp_enqueue_script( 'jquery-ui-tabs' );
+			wp_localize_script( 'cryout-serious-slider', 'cryout_serious_slider_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+			wp_localize_script( 'cryout-serious-slider', 'CRYOUT_MCE_LOCALIZED', $localized_mce_strings );
+		}
+
 		// slides
 		if ( in_array( $pagenow, array( 'edit.php', 'post-new.php', 'post.php' ) ) ) {
 			wp_enqueue_style('serious-slider-shortcode', plugins_url( 'resources/mce-button.css' , __FILE__ ), NULL, $this->version );
 			wp_enqueue_media();
+			wp_enqueue_script( 'jquery-ui-tabs' );
+			wp_enqueue_script( 'cryout-serious-slider', plugins_url( 'resources/backend.js', __FILE__ ), array('wp-color-picker'), $this->version, array('strategy'  => 'defer', 'in_footer' => true) );
+			wp_localize_script( 'cryout-serious-slider', 'cryout_serious_slider_ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+			wp_localize_script( 'cryout-serious-slider', 'CRYOUT_MCE_LOCALIZED', $localized_mce_strings );
 		};
 		// slides, sliders or plugin about page
 		if( ($hook == $this->thepage) || ( $this->posttype == $post_type ) ) {
@@ -877,6 +991,7 @@ class Cryout_Serious_Slider {
 			wp_enqueue_style('serious-slider-admincss', plugins_url( 'resources/backend.css' , __FILE__ ), NULL, $this->version );
 			wp_enqueue_media();
 		};
+
 	} // admin_enqueue_scripts()
 	
     public function privacy_content(){
@@ -898,28 +1013,28 @@ class Cryout_Serious_Slider {
 	   on form submit as of 4.4.2; using type="number" by default as workaround */
  		?>
 		<div class="seriousslider-option seriousslider-option-input">
-			<span><?php echo $title ?></span>
-			<input id="<?php echo $id ?>" name="<?php echo $id ?>" class="<?php echo $class ?>" type="<?php echo $type ?>" value="<?php echo $current ?>" <?php echo $extra2 ?>> <?php echo $extra ?>
-			<p class="description"><?php echo $desc ?></p>
+			<span><?php echo esc_html( $title ) ?></span>
+			<input id="<?php echo esc_attr( $id ) ?>" name="<?php echo esc_attr( $id ) ?>" class="<?php echo esc_attr( $class ) ?>" type="<?php echo esc_attr( $type ) ?>" value="<?php echo esc_attr( $current ) ?>" <?php echo wp_kses_data( $extra2 ) ?>> <?php echo wp_kses_data( $extra ) ?>
+			<p class="description"><?php echo esc_html( $desc ) ?></p>
 		</div>
 
 	<?php
 	} // inputfield()
 	function selectfield( $id=0, $options=array(), $current=false, $title='', $desc='', $class='', $extra='' ) { ?>
 		<div class="seriousslider-option seriousslider-option-input">
-			<span><?php echo $title ?></span>
-			<select id="<?php echo $id ?>" name="<?php echo $id ?>" class="<?php echo $class ?>">
+			<span><?php echo esc_html( $title ) ?></span>
+			<select id="<?php echo esc_attr( $id ) ?>" name="<?php echo esc_attr( $id ) ?>" class="<?php echo esc_attr( $class ) ?>">
 				<?php foreach ($options as $value => $label) { ?>
-						<option value="<?php echo $value ?>" <?php selected( $current, $value); ?>><?php echo $label ?></option>
+						<option value="<?php echo esc_attr( $value ) ?>" <?php selected( $current, $value); ?>><?php echo esc_html( $label ) ?></option>
 				<?php } ?>
 			</select>
-			<p class="description"><?php echo $desc ?></p>
+			<p class="description"><?php echo esc_html( $desc ) ?></p>
 		</div>
 	<?php
 	} // selectfield()
 
 	function titlefield( $text ) {
-		echo $text;
+		echo wp_kses_data( $text );
 	} /// titlefield()
 
 } // class Cryout_Serious_Slider

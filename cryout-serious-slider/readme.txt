@@ -6,9 +6,9 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: slider, slideshow, image slider, responsive slider, wordpress slider
 Text Domain: cryout-serious-slider
 Requires at least: 4.5
-Requires PHP: 5.6
-Tested up to: 6.6
-Stable tag: 1.2.7
+Requires PHP: 7.0
+Tested up to: 6.9
+Stable tag: 1.3.0
 
 Serious Slider is a free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
 
@@ -99,6 +99,19 @@ Serious Slider works with all WordPress themes and has been designed to integrat
 
 
 == Changelog ==
+
+= 1.3.0 =
+*Release date - 2026.03.12*
+
+* Fixed insufficient permissions check in slide image handling code allowing users with at least subscriber level access to delete images from slider - reported by Legion Hunter to patchstack.com and kr0d to Wordfence
+* Rewrote initialization to resolve the '_load_textdomain_just_in_time() was called incorrectly' notice introduced by WordPress 6.7
+* Hardened permissions checks in functions handling sliders configuration parameters
+* Improved sanitization and escaping according to the Plugin Check (PCP) recommendations
+* Improved slider generation workflow to reset form after dynamic creation
+* Improved performance by loading scripts in footer
+* Fixed jQuery.isFunction() and jQuery.fn.bind() deprecation notices
+* Tested for compatibility with WordPress 6.9
+* Bumped required PHP version to 7.0
 
 = 1.2.7 =
 *Release date - 2024.11.16*

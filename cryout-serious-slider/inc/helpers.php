@@ -18,7 +18,7 @@ class Cryout_Serious_Slider_Sanitizers {
 	} // color_clean()
 
 	/* converts hex colour code to RGB series to be used in a rgba() CSS colour definition */
-	public function hex2rgb( $hex ) {
+	public function hex2rgb( $hex, $sep=',' ) {
 	   $hex = str_replace("#", "", $hex);
 	   if (preg_match("/^([a-f0-9]{3}|[a-f0-9]{6})$/i",$hex)):
 			if(strlen($hex) == 3) {
@@ -31,7 +31,7 @@ class Cryout_Serious_Slider_Sanitizers {
 			   $b = hexdec(substr($hex,4,2));
 			}
 			$rgb = array($r, $g, $b);
-			return implode(",", $rgb); // returns the rgb values separated by commas
+			return implode($sep, $rgb); // returns the rgb values separated by commas
 	   else: return "";  // input string is not a valid hex color code
 	   endif;
 	} // hex2rgb()

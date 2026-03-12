@@ -6,22 +6,22 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 <div class="seriousslider-media">
 	<div class="seriousslider-media-container"></div>
-	<a href="#" class="button" id="seriousslider-media"><?php _e( 'Select Images', 'cryout-serious-slider' ) ?></a>
+	<a href="#" class="button" id="seriousslider-media"><?php esc_html_e( 'Select Images', 'cryout-serious-slider' ) ?></a>
 </div>
 
 <div class="seriousslider-new-slider-button">
 	<a id="new-slider-button" class="button button-primary">
-		<?php _e( 'Continue', 'cryout-serious-slider' ) ?>
+		<?php esc_html_e( 'Continue', 'cryout-serious-slider' ) ?>
 	</a>
 </div>
 
-<div class="seriousslider-new-slider-wrapper">
+<div class="seriousslider-new-slider-wrapper" style="display: none;">
 
 <div id="seriousslider-tabs">
 	<ul>
-		<li><a href="#general"><?php _e( 'General', 'cryout-serious-slider' ) ?></a></li>
-		<li><a href="#appearance"><?php _e( 'Appearance', 'cryout-serious-slider' ) ?></a></li>
-		<li><a href="#animation"><?php _e( 'Animation', 'cryout-serious-slider' ) ?></a></li>
+		<li><a href="#general"><?php esc_html_e( 'General', 'cryout-serious-slider' ) ?></a></li>
+		<li><a href="#appearance"><?php esc_html_e( 'Appearance', 'cryout-serious-slider' ) ?></a></li>
+		<li><a href="#animation"><?php esc_html_e( 'Animation', 'cryout-serious-slider' ) ?></a></li>
 	</ul>
 
 
@@ -30,7 +30,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 		<?php
 
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_sort]',
 			array( 
 				'date' => __('by date','cryout-serious-slider'), 
@@ -42,7 +42,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_sizing]',
 			array( 0 => __('Adapt to images','cryout-serious-slider'), 1 => __('Contain Images','cryout-serious-slider'), 2 => __('Force Images to Size','cryout-serious-slider') ),
 			$the_meta['cryout_serious_slider_sizing'],
@@ -50,7 +50,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_width]',
 			$the_meta['cryout_serious_slider_width'],
 			__('Width','cryout-serious-slider'),
@@ -58,7 +58,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'short',
 			'px'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_height]',
 			$the_meta['cryout_serious_slider_height'],
 			__('Height','cryout-serious-slider'),
@@ -66,7 +66,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'short',
 			'px'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_responsiveness]',
 			array( 'legacy' => __('Legacy Resize','cryout-serious-slider'), 'maintain' => __('Maintain Height','cryout-serious-slider') ),
 			$the_meta['cryout_serious_slider_responsiveness'],
@@ -74,7 +74,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_hidetitles]',
 			array( 0 => __('Show titles','cryout-serious-slider'), 1 => __('Hide titles','cryout-serious-slider') ),
 			$the_meta['cryout_serious_slider_hidetitles'],
@@ -86,7 +86,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 	<div id="appearance">
 		<?php
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_theme]',
 			array(	'light' 	=> __( 'Light', 'cryout-serious-slider' ),
 					'light2' 	=> __( 'Light 2', 'cryout-serious-slider' ),
@@ -102,7 +102,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_shadow]',
 			array(	'none' 		=> __( 'None', 'cryout-serious-slider' ),
 					'level1' 	=> __( 'Level 1', 'cryout-serious-slider' ),
@@ -119,7 +119,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_overlay]',
 			array(  0 => __('Always hidden', 'cryout-serious-slider'),
 					1 => __('Appear on hover','cryout-serious-slider'),
@@ -130,7 +130,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_textsize]',
 			$the_meta['cryout_serious_slider_textsize'],
 			__('Base Font Size','cryout-serious-slider'),
@@ -140,7 +140,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'step="0.05"'
 		);
 
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_align]',
 			array(  'left' => __('Left', 'cryout-serious-slider'),
 					'center' => __('Center','cryout-serious-slider'),
@@ -152,7 +152,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_caption_width]',
 			$the_meta['cryout_serious_slider_caption_width'],
 			__('Caption Width','cryout-serious-slider'),
@@ -160,7 +160,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'short',
 			'px'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_textstyle]',
 			array(  'none' => __('None', 'cryout-serious-slider'),
 					'textshadow' => __('Text Shadow','cryout-serious-slider'),
@@ -171,7 +171,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_accent]',
 			$the_meta['cryout_serious_slider_accent'],
 			__('Accent Color','cryout-serious-slider'),
@@ -185,7 +185,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 	<div id="animation">
 		<?php
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_autoplay]',
 			array( 1 => __('Enabled','cryout-serious-slider'), 0 => __('Disabled','cryout-serious-slider') ),
 			$the_meta['cryout_serious_slider_autoplay'],
@@ -193,7 +193,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_animation]',
 			array(
 				'fade' => __('Fade','cryout-serious-slider'),
@@ -209,7 +209,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_hover]',
 			array( 'hover' => __('Enabled','cryout-serious-slider'), 'false' => __('Disabled','cryout-serious-slider') ),
 			$the_meta['cryout_serious_slider_hover'],
@@ -217,7 +217,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'',
 			'short'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_delay]',
 			$the_meta['cryout_serious_slider_delay'],
 			__('Transition Delay','cryout-serious-slider'),
@@ -225,7 +225,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'short',
 			'ms'
 		);
-		echo $this->inputfield(
+		$this->inputfield(
 			'term_meta[cryout_serious_slider_transition]',
 			$the_meta['cryout_serious_slider_transition'],
 			__('Transition Duration','cryout-serious-slider'),
@@ -233,7 +233,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			'short',
 			'ms'
 		);
-		echo $this->selectfield(
+		$this->selectfield(
 			'term_meta[cryout_serious_slider_captionanimation]',
 			array(
 				'none' => __('None','cryout-serious-slider'),
@@ -251,6 +251,8 @@ if ( !defined( 'ABSPATH' ) ) exit;
 	</div><!--animation-->
 
 </div><!--#seriousslider-tabs-->
+
+<?php wp_nonce_field( 'cryout_serious_slider_taxmeta', 'cryout_serious_slider_taxmeta_nonce' ); ?>
 
 </div><!--seriousslider-new-slider-wrapper-->
 <br>

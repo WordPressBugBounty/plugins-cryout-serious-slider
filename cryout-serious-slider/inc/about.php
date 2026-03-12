@@ -6,26 +6,25 @@ if ( !defined( 'ABSPATH' ) ) exit;
 ?>
 
 	<div class="wrap" id="serious-slider-about">
-		<h2><?php //echo $this->title; ?></h2>
+		<h2><?php /* main title */ ?></h2>
 		<?php
-		if ( ! isset( $_REQUEST['add_sample_content'] ) ) $_REQUEST['add_sample_content'] = false;
-		
 		if (current_user_can('edit_others_posts')) {
-			if ( $_REQUEST['add_sample_content'] && !empty( $this->justsampled ) ) {
+			
+			if ( $add_sample_content && !empty( $this->justsampled ) ) {
 					/* because wp doesn't auto display saved notice on non-options pages */ ?>
 					<div class="updated settings-error notice is-dismissible" id="notice-updated-seriousslider">
-						<p><strong><?php _e('Sample slider created.', 'cryout-serious-slider');?></strong><br>
-						<?php _e('Sample content added. Navigate to Manage Sliders section to see the sample content.', 'cryout-serious-slider') ?></p>
+						<p><strong><?php esc_html_e('Sample slider created.', 'cryout-serious-slider');?></strong><br>
+						<?php esc_html_e('Sample content added. Navigate to Manage Sliders section to see the sample content.', 'cryout-serious-slider') ?></p>
 					</div>
-			<?php } elseif ( $_REQUEST['add_sample_content'] && empty( $this->justsampled ) ) { ?>
+			<?php } elseif ( $add_sample_content && empty( $this->justsampled ) ) { ?>
 					<div class="notice-warning notice is-dismissible" id="notice-warning-seriousslider">
-						<p><?php _e('Sample slider content already exists. Navigate to Manange Sliders section to see the existing sample content.', 'cryout-serious-slider') ?></p>
+						<p><?php esc_html_e('Sample slider content already exists. Navigate to Manange Sliders section to see the existing sample content.', 'cryout-serious-slider') ?></p>
 					</div>				
 			<?php } ?>
 		<?php } else { ?>
 			<div class="notice notice-warning is-dismissible">
-				<p><?php _e('You do not have sufficient permissions to create sample content.', 'cryout-serious-slider') ?></p>
-				<button class="notice-dismiss" type="button"><span class="screen-reader-text"><?php _e('Dismiss this notice.', 'cryout-serious-slider' ) ?></span></button>
+				<p><?php esc_html_e('You do not have sufficient permissions to create sample content.', 'cryout-serious-slider') ?></p>
+				<button class="notice-dismiss" type="button"><span class="screen-reader-text"><?php esc_html_e('Dismiss this notice.', 'cryout-serious-slider' ) ?></span></button>
 			</div>
 		<?php } // currentusercan ?>
 
@@ -34,7 +33,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			<div id="post-body-content">
 
 				<div class="postbox" id="serious-slider-header">
-					<img src="<?php echo plugins_url('../resources/images/serious-slider-header.png', __FILE__); ?>" />
+					<img src="<?php echo esc_url( plugins_url('../resources/images/serious-slider-header.png', __FILE__) ); ?>" />
 
 					<div id="serious-slider-description"> <?php 
 					/**
@@ -42,7 +41,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 					 * so this part is not localizable 
 					 **/                                     ?>
 					
-					<h3>Serious Slider is a highly efficient SEO friendly fully translatable free image slider for WordPress.</h3>
+					<h3>Serious Slider is a free highly efficient SEO friendly fully translatable image slider for WordPress.</h3>
 					
 						<div id="seriousslider-tabs">
 							<ul>
@@ -107,44 +106,47 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 							<div class="postbox">
 								<h3 style="text-align: center;" class="hndle">
-									<img id="serious-slider-logo" src="<?php echo plugins_url('../resources/images/serious-slider-128.png', __FILE__); ?>" />
-									<span><strong><?php echo $this->title; ?></strong></span>
+									<img id="serious-slider-logo" src="<?php echo esc_url( plugins_url('../resources/images/serious-slider-128.png', __FILE__) ); ?>" />
+									<span><strong><?php echo esc_html( $this->title ); ?></strong></span>
 								</h3>
 
 								<div class="inside">
 									<div style="text-align: center; margin: auto">
-										<strong><?php printf( __('version: %s','cryout-serious-slider'), $this->version ); ?></strong><br>
-										<?php _e('by','cryout-serious-slider') ?> Cryout Creations<br>
-										<a class="button button-primary" href="http://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider" target="_blank"><?php _e('Plugin Homepage', 'cryout-serious-slider') ?></a>
+										<strong><?php 
+										/* translators: outputs the plugin's version number */
+										esc_html( sprintf( __('version: %s', 'cryout-serious-slider'), $this->version ) ); 
+										?></strong><br>
+										<?php esc_html_e('by','cryout-serious-slider') ?> Cryout Creations<br>
+										<a class="button button-primary" href="http://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider" target="_blank"><?php esc_html_e('Plugin Homepage', 'cryout-serious-slider') ?></a>
 									</div>
 								</div>
 							</div>
 
 							<div class="postbox">
 								<h3 style="text-align: center;" class="hndle">
-									<span><?php _e('Need help?','cryout-serious-slider') ?></span>
+									<span><?php esc_html_e('Need help?','cryout-serious-slider') ?></span>
 								</h3><div class="inside">
 									<div style="text-align: center; margin: auto">
-										<a class="button button-secondary" href="http://www.cryoutcreations.eu/wordpress-tutorials/create-slider-serious-slider-plugin" target="_blank"><?php _e('Documentation', 'cryout-serious-slider') ?></a>
-										<a class="button button-primary" href="http://www.cryoutcreations.eu/priority-support" target="_blank"><?php _e('Priority Support', 'cryout-serious-slider') ?></a>
-										<a class="button button-secondary" href="http://www.cryoutcreations.eu/forums/f/wordpress/plugins/serious-slider" target="_blank"><?php _e('Support Forum', 'cryout-serious-slider') ?></a>
+										<a class="button button-secondary" href="http://www.cryoutcreations.eu/wordpress-tutorials/create-slider-serious-slider-plugin" target="_blank"><?php esc_html_e('Documentation', 'cryout-serious-slider') ?></a>
+										<a class="button button-primary" href="http://www.cryoutcreations.eu/priority-support" target="_blank"><?php esc_html_e('Priority Support', 'cryout-serious-slider') ?></a>
+										<a class="button button-secondary" href="http://www.cryoutcreations.eu/forums/f/wordpress/plugins/serious-slider" target="_blank"><?php esc_html_e('Support Forum', 'cryout-serious-slider') ?></a>
 									</div>
 								</div>
 							</div>
 
 							<div class="postbox">
 								<h3 style="text-align: center;" class="hndle">
-									<span><?php _e('Demo Content','cryout-serious-slider') ?></span>
+									<span><?php esc_html_e('Demo Content','cryout-serious-slider') ?></span>
 								</h3>
 								<div class="inside">
 									<div style="text-align: center; margin: auto">
-										<a class="button button-secondary" href="<?php echo add_query_arg( array(
+										<a class="button button-secondary" href="<?php echo esc_url( add_query_arg( array(
 											'add_sample_content' => 1,
 											 '_wpnonce' => wp_create_nonce( 'sampleslider' )
-											), $this->aboutpage ) ?>">
-											<?php _e('Create Sample Slider', 'cryout-serious-slider');?>
+											), $this->aboutpage ) ) ?>">
+											<?php esc_html_e('Create Sample Slider', 'cryout-serious-slider');?>
 										</a>
-										<p class="description"><small><?php _e('This will create a sample slider with 3 slides which you can use as a basis for your own content.', 'cryout-serious-slider') ?></small></p>
+										<p class="description"><small><?php esc_html_e('This will create a sample slider with 3 slides which you can use as a basis for your own content.', 'cryout-serious-slider') ?></small></p>
 									</div>
 								</div> <!--inside-->
 							</div> <!--postbox-->
