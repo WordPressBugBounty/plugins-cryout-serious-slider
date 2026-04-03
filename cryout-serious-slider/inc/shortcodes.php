@@ -30,10 +30,7 @@ class Cryout_Serious_Slider_Shortcode {
 		foreach ($options as $id => $opt) ${$id} = $opt;
 
 		printf( '<style type="text/css">%2$s /* cryout serious slider styles */ %2$s %1$s %2$s</style>', 
-			wp_kses( 
-				preg_replace( '/([\n\s])+/', ' ', implode(' ', $this->custom_style) ),
-				array()
-			),
+			sanitize_textarea_field( preg_replace( '/([\n\s])+/', ' ', implode(' ', $this->custom_style) ) ),
 			PHP_EOL
 		);
 	} // shortcode_slyle()
@@ -42,7 +39,7 @@ class Cryout_Serious_Slider_Shortcode {
 		ob_start();
 		?><script type="text/javascript">
 			/* cryout serious slider scripts */
-		<?php echo wp_kses( implode(PHP_EOL, $this->custom_script ), array() ); ?>
+		<?php echo sanitize_textarea_field( implode(PHP_EOL, $this->custom_script ), array() ); ?>
 		</script>
 		<?php
 		ob_end_flush();
@@ -122,52 +119,53 @@ class Cryout_Serious_Slider_Shortcode {
 
 		ob_start(); ?>
 			:root{
-				--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent: <?php echo esc_html( $this->sanitizer->color_clean( $accent ) ); ?>;
-				--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent-rgb: <?php echo esc_html( $this->sanitizer->hex2rgb( $accent, ' ' ) ); ?>;
+				--serious-slider-__SID__-color-accent: __ACCENT__;
+				--serious-slider-__SID__-width: <?php echo intval( $width ); ?>px;
+				--serious-slider-__SID__-height: <?php echo intval( $height ); ?>px;
 			}
 			
-			.serious-slider-<?php echo esc_attr( $cid ) ?> { max-width: <?php echo intval( $width ); ?>px; }
-			.serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing1, .serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing1 img { max-height: <?php echo intval( $height ); ?>px;  }
-			.serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing2, .serious-slider-<?php echo esc_attr( $cid ) ?>.seriousslider-sizing2 img.item-image { height: <?php echo intval( $height ); ?>px;  }
-			.serious-slider-<?php echo esc_attr( $cid ) ?> .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
+			.serious-slider-__SID__ { max-width: var(--serious-slider-__SID__-width); }
+			.serious-slider-__SID__.seriousslider-sizing1, .serious-slider-__SID__.seriousslider-sizing1 img { max-height: var(--serious-slider-__SID__-height);  }
+			.serious-slider-__SID__.seriousslider-sizing2, .serious-slider-__SID__.seriousslider-sizing2 img.item-image { height: var(--serious-slider-__SID__-height);  }
+			.serious-slider-__SID__ .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
 
-			.serious-slider-<?php echo esc_attr( $cid ) ?> .seriousslider-inner > .item {
-				-webkit-transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s;
-				-o-transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s;
-				transition-duration: <?php echo esc_html( round(intval($transition)/1000,2) ) ?>s; }
+			.serious-slider-__SID__ .seriousslider-inner > .item {
+				-webkit-transition-duration: __TRANSITION__;
+				-o-transition-duration: __TRANSITION__;
+				transition-duration: __TRANSITION__; }
 
-			.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
-				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.6);
+			.serious-slider-__SID__.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
+				background-color: rgba( __ACCENT_RGB__, 0.6);
 			}
 
 			/* Indicators */
-			.seriousslider-dark .seriousslider-indicators li.active,
-			.seriousslider-square .seriousslider-indicators li.active,
-			.seriousslider-tall .seriousslider-indicators li.active,
-			.seriousslider-captionleft .seriousslider-indicators li.active,
-			.seriousslider-captionbottom .seriousslider-indicators li.active {
-				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.8);
+			.serious-slider-__SID__.seriousslider-dark .seriousslider-indicators li.active,
+			.serious-slider-__SID__.seriousslider-square .seriousslider-indicators li.active,
+			.serious-slider-__SID__.seriousslider-tall .seriousslider-indicators li.active,
+			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-indicators li.active,
+			.serious-slider-__SID__.seriousslider-captionbottom .seriousslider-indicators li.active {
+				background-color: rgba( __ACCENT_RGB__, 0.8);
 			}
 
 			/* Arrows */
-			.seriousslider-dark .seriousslider-control:hover .control-arrow,
-			.seriousslider-square .seriousslider-control:hover .control-arrow,
-			.seriousslider-tall .seriousslider-control .control-arrow {
-				background-color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 0.8);
+			.serious-slider-__SID__.seriousslider-dark .seriousslider-control:hover .control-arrow,
+			.serious-slider-__SID__.seriousslider-square .seriousslider-control:hover .control-arrow,
+			.serious-slider-__SID__.seriousslider-tall .seriousslider-control .control-arrow {
+				background-color: rgba( __ACCENT_RGB__, 0.8);
 			}
 
-			.seriousslider-tall .seriousslider-control:hover .control-arrow {
-				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 1);
+			.serious-slider-__SID__.seriousslider-tall .seriousslider-control:hover .control-arrow {
+				color: rgba( __ACCENT_RGB__, 1);
 				background-color: #FFF;
 			}
 
-			.seriousslider-captionbottom .seriousslider-control .control-arrow,
-			.seriousslider-captionleft .seriousslider-control .control-arrow {
-				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, .8);
+			.serious-slider-__SID__.seriousslider-captionbottom .seriousslider-control .control-arrow,
+			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-control .control-arrow {
+				color: rgba( __ACCENT_RGB__, .8);
 			}
 
-			.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
-				color: rgba( <?php echo esc_html( $this->sanitizer->hex2rgb( $accent ) ); ?>, 1);
+			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
+				color: rgba( __ACCENT_RGB__, 1);
 			}
 
 			/* Buttons */
@@ -176,74 +174,74 @@ class Cryout_Serious_Slider_Shortcode {
 				case 'light': ?>
 
 				/* Light */
-				.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
-				.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
+				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
+					color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
-					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+					background-color: var(--serious-slider-__SID__-color-accent);
+					border-color: var(--serious-slider-__SID__-color-accent);
 				}
 
 			<?php break;
 				case 'dark': ?>
 
 				/* Dark */
-				.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
+					color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
 					border-color: #FFF;
 				}
 
-				.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
+					border-color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
-					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
-					border-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
+					background-color: var(--serious-slider-__SID__-color-accent);
+					border-color: var(--serious-slider-__SID__-color-accent);
 				}
 
 			<?php break;
 				case 'square': ?>
 
 				/* Square */
-				.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
+					background-color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
+				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #fff;
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+					color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+					color: var(--serious-slider-__SID__-color-accent);
 					background: #FFF;
 				}
 
-				.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
+				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
 					color: #fff;
-					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+					background-color: var(--serious-slider-__SID__-color-accent);
 				}
 
 			<?php break;
 				case 'tall': ?>
 
 				/* Tall */
-				.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
+					background-color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
+				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #FFF;
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+					color: var(--serious-slider-__SID__-color-accent);
 				}
 
-				.seriousslider-tall .seriousslider-caption-buttons a:hover {
+				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:hover {
 					opacity: 0.8;
 				}
 
@@ -251,8 +249,8 @@ class Cryout_Serious_Slider_Shortcode {
 				case 'captionleft': ?>
 
 				/* Left caption */
-				.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
-					color: var(--serious-slider-<?php echo esc_attr( $cid ) ?>-color-accent);
+				.serious-slider-__SID__.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
+					color: var(--serious-slider-__SID__-color-accent);
 				}
 
 			<?php
@@ -261,7 +259,21 @@ class Cryout_Serious_Slider_Shortcode {
 				break;
 			} // switch($theme)
 
-		$this->custom_style[] = ob_get_clean();
+		$this->custom_style[] = str_replace(
+			array(
+				'__SID__', 			// slider ctp id
+				'__TRANSITION__', 	// animation transition duration (s)
+				'__ACCENT__', 		// configured accent color, hex
+				'__ACCENT_RGB__', 	// configured accent color, rgba
+			),
+			array(
+				intval( $sid ),
+				esc_html( round(intval($transition)/1000,2) ) . 's',
+				esc_html( $this->sanitizer->color_clean( $accent ) ),
+				esc_html( $this->sanitizer->hex2rgb( $accent ) ),
+			),
+			ob_get_clean()
+		);
 		add_action( 'wp_footer', array($this, 'shortcode_style') );
 		ob_start() ?>
 		var interval = <?php echo intval( $delay ) ?>/200;
@@ -281,7 +293,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 		if ( $the_query->have_posts() ):
 		ob_start(); ?>
-		<div id="serious-slider-<?php echo esc_attr( $cid ) ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo esc_attr( $cid ) ?> cryout-serious-slider-<?php echo intval( $sid ) ?> <?php echo wp_kses_data( $slider_classes ) ?>" data-ride="seriousslider">
+		<div id="serious-slider-<?php echo esc_attr( $cid ) ?>" class="cryout-serious-slider seriousslider serious-slider-<?php echo esc_attr( $cid ) ?> serious-slider-<?php echo intval( $sid ) ?> <?php echo wp_kses_data( $slider_classes ) ?>" data-ride="seriousslider">
 			<div class="seriousslider-inner" role="listbox">
 
 			<?php while ($the_query->have_posts()):
@@ -329,8 +341,8 @@ class Cryout_Serious_Slider_Shortcode {
 						<?php if (!empty($slide_text)) { ?><div class="seriousslider-caption-text"><?php the_content() ?></div><?php } ?>
 						<div class="seriousslider-caption-buttons">
 							<?php for ( $i=1; $i<=$this->butts; $i++ ) { ?>
-								<?php if ( !empty($meta_button[$i]['label']) ) { ?>
-									<a class="seriousslider-button" href="<?php echo esc_url( $meta_button[$i]['url']) ?>" <?php echo wp_kses_data( $meta_button[$i]['target'] ) ?>><?php echo esc_attr( $meta_button[$i]['label'] ) ?></a>
+								<?php if ( !empty($meta_buttons[$i]['label']) ) { ?>
+									<a class="seriousslider-button" href="<?php echo esc_url( $meta_buttons[$i]['url']) ?>" <?php echo wp_kses_data( $meta_buttons[$i]['target'] ) ?>><?php echo esc_attr( $meta_buttons[$i]['label'] ) ?></a>
 								<?php } ?>
 							<?php } ?>
 						</div>
