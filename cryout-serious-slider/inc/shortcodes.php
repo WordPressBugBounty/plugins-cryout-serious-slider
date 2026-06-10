@@ -24,26 +24,24 @@ class Cryout_Serious_Slider_Shortcode {
 	}
 
 	function shortcode_style() {
-		$sid = $this->id;
-		$cid = $this->cid;
-		$options = $this->shortcode_options($sid);
-		foreach ($options as $id => $opt) ${$id} = $opt;
 
-		printf( '<style type="text/css">%2$s /* cryout serious slider styles */ %2$s %1$s %2$s</style>', 
-			sanitize_textarea_field( preg_replace( '/([\n\s])+/', ' ', implode(' ', $this->custom_style) ) ),
-			PHP_EOL
-		);
+		$css = preg_replace( '/([\n\s])+/', ' ', wp_strip_all_tags( implode( PHP_EOL, $this->custom_style ) ) );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		printf( '<style type="text/css">/* cryout serious slider styling */ %s</style>', $css );
 	} // shortcode_slyle()
 
 	function shortcode_script() {
 		ob_start();
 		?><script type="text/javascript">
-			/* cryout serious slider scripts */
-		<?php echo sanitize_textarea_field( implode(PHP_EOL, $this->custom_script ), array() ); ?>
-		</script>
+			/* cryout serious slider script */
+			jQuery(document).ready(function(){
 		<?php
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo implode( PHP_EOL, $this->custom_script ); ?>
+			})
+		</script><?php
 		ob_end_flush();
-	} // shortcode_slyle()
+	} // shortcode_script()
 
 	function shortcode_render($attr) {
 
@@ -52,16 +50,12 @@ class Cryout_Serious_Slider_Shortcode {
 		// exit silently if slider id is not defined
 		if ( empty($attr['id'])) { return; } 
 		
-		$sid = intval($attr['id']); 									// slider cpt id from backend
+		$sid = intval($attr['id']); 									// slider cpt tax id from backend
 		$cid = sprintf( '%d-rnd%.4d', abs($sid), wp_rand(1000,9999) );	// slider div id on frontend (includes random number for uniqueness)
 
 		$options = apply_filters('cryout_serious_slider_shortcode_attributes', $this->shortcode_options( $sid ), $attr, $sid);
 		extract($options);
 
-		if (!empty($attr['count'])) $count = intval($attr['count']); else $count = -1;
-
-		$hidetitle = ( !empty($hidetitles) || !empty($attr['hidetitle']) );
-		$hidecaption = !empty($attr['hidecaption']);
 
 		switch ($sort) {
 			case 'order':
@@ -80,6 +74,24 @@ class Cryout_Serious_Slider_Shortcode {
 			$order = 'DESC';
 			break;
 		} // switch
+
+		if (!empty($attr['count'])) $count = intval($attr['count']); else $count = -1;
+
+		// allow shortcode attributes to override configured options
+		if (!empty($attr['width'])) 		$width = absint( $attr['width'] );
+		if (!empty($attr['height'])) 		$height = absint( $attr['height'] );
+		if (!empty($attr['responsiveness'])) $responsiveness = sanitize_text_field( $attr['responsiveness'] );
+		if (!empty($attr['theme'])) 		$theme = sanitize_text_field( $attr['theme'] );
+		if (!empty($attr['align'])) 		$align = sanitize_text_field( $attr['align'] );
+		if (!empty($attr['textstyle'])) 	$textstyle = sanitize_text_field( $attr['textstyle'] );
+		if (!empty($attr['accent'])) 		$accent = sanitize_text_field( $attr['accent'] );
+		if (!empty($attr['animation'])) 	$animation = sanitize_text_field( $attr['animation'] );
+		if (!empty($attr['hover'])) 		$hover = sanitize_text_field( $attr['hover'] );
+		if (!empty($attr['delay'])) 		$delay = intval( $attr['delay'] );
+		if (!empty($attr['transition'])) 	$transition = intval( $attr['transition'] );
+		$hidetitle = ( !empty($hidetitles) || !empty($attr['hidetitle']) );
+		$hidecaption = ( !empty($hidecaption) || !empty($attr['hidecaption']) );
+		if (!empty($attr['autoplay'])) 		$autoplay = sanitize_text_field($attr['autoplay']);
 
 		// allow order override via shortcode
 		if (!empty($attr['orderby'])) $orderby = esc_attr($attr['orderby']);
@@ -107,7 +119,7 @@ class Cryout_Serious_Slider_Shortcode {
 					array(
 						'taxonomy' => $cryout_serious_slider->taxonomy,
 						'field'    => 'id',
-						'terms'    => array( $cid ),
+						'terms'    => array( $sid ),
 					),
 				),
 			)
@@ -119,52 +131,56 @@ class Cryout_Serious_Slider_Shortcode {
 
 		ob_start(); ?>
 			:root{
-				--serious-slider-__SID__-color-accent: __ACCENT__;
-				--serious-slider-__SID__-width: <?php echo intval( $width ); ?>px;
-				--serious-slider-__SID__-height: <?php echo intval( $height ); ?>px;
+				--serious-slider-__CID__-color-accent: __ACCENT__;
+				--serious-slider-__CID__-color-theme: '<?php echo $theme ?>';
+				--serious-slider-__CID__-width: <?php echo intval( $width ); ?>px;
+				--serious-slider-__CID__-height: <?php echo intval( $height ); ?>px;
 			}
 			
-			.serious-slider-__SID__ { max-width: var(--serious-slider-__SID__-width); }
-			.serious-slider-__SID__.seriousslider-sizing1, .serious-slider-__SID__.seriousslider-sizing1 img { max-height: var(--serious-slider-__SID__-height);  }
-			.serious-slider-__SID__.seriousslider-sizing2, .serious-slider-__SID__.seriousslider-sizing2 img.item-image { height: var(--serious-slider-__SID__-height);  }
-			.serious-slider-__SID__ .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
+			.serious-slider-__CID__ { max-width: var(--serious-slider-__CID__-width); }
+			.serious-slider-__CID__.seriousslider-sizing1, .serious-slider-__CID__.seriousslider-sizing1 img { max-height: var(--serious-slider-__CID__-height);  }
+			.serious-slider-__CID__.seriousslider-sizing2, .serious-slider-__CID__.seriousslider-sizing2 img.item-image { height: var(--serious-slider-__CID__-height);  }
+			.serious-slider-__CID__ .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
 
-			.serious-slider-__SID__ .seriousslider-inner > .item {
+			.serious-slider-__CID__ .seriousslider-inner > .item {
 				-webkit-transition-duration: __TRANSITION__;
 				-o-transition-duration: __TRANSITION__;
-				transition-duration: __TRANSITION__; }
+				transition-duration: __TRANSITION__;
+			}
 
-			.serious-slider-__SID__.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
+			.serious-slider-__CID__.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
 				background-color: rgba( __ACCENT_RGB__, 0.6);
 			}
 
 			/* Indicators */
-			.serious-slider-__SID__.seriousslider-dark .seriousslider-indicators li.active,
-			.serious-slider-__SID__.seriousslider-square .seriousslider-indicators li.active,
-			.serious-slider-__SID__.seriousslider-tall .seriousslider-indicators li.active,
-			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-indicators li.active,
-			.serious-slider-__SID__.seriousslider-captionbottom .seriousslider-indicators li.active {
+			.serious-slider-__CID__.seriousslider-dark .seriousslider-indicators li.active,
+			.serious-slider-__CID__.seriousslider-dark2 .seriousslider-indicators li.active,
+			.serious-slider-__CID__.seriousslider-square .seriousslider-indicators li.active,
+			.serious-slider-__CID__.seriousslider-tall .seriousslider-indicators li.active,
+			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-indicators li.active,
+			.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-indicators li.active {
 				background-color: rgba( __ACCENT_RGB__, 0.8);
 			}
 
 			/* Arrows */
-			.serious-slider-__SID__.seriousslider-dark .seriousslider-control:hover .control-arrow,
-			.serious-slider-__SID__.seriousslider-square .seriousslider-control:hover .control-arrow,
-			.serious-slider-__SID__.seriousslider-tall .seriousslider-control .control-arrow {
+			.serious-slider-__CID__.seriousslider-dark .seriousslider-control:hover .control-arrow,
+			.serious-slider-__CID__.seriousslider-dark2 .seriousslider-control:hover .control-arrow,
+			.serious-slider-__CID__.seriousslider-square .seriousslider-control:hover .control-arrow,
+			.serious-slider-__CID__.seriousslider-tall .seriousslider-control .control-arrow {
 				background-color: rgba( __ACCENT_RGB__, 0.8);
 			}
 
-			.serious-slider-__SID__.seriousslider-tall .seriousslider-control:hover .control-arrow {
+			.serious-slider-__CID__.seriousslider-tall .seriousslider-control:hover .control-arrow {
 				color: rgba( __ACCENT_RGB__, 1);
 				background-color: #FFF;
 			}
 
-			.serious-slider-__SID__.seriousslider-captionbottom .seriousslider-control .control-arrow,
-			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-control .control-arrow {
+			.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-control .control-arrow,
+			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-control .control-arrow {
 				color: rgba( __ACCENT_RGB__, .8);
 			}
 
-			.serious-slider-__SID__.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
+			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
 				color: rgba( __ACCENT_RGB__, 1);
 			}
 
@@ -174,100 +190,129 @@ class Cryout_Serious_Slider_Shortcode {
 				case 'light': ?>
 
 				/* Light */
-				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
-				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
+				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
+					color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					background-color: var(--serious-slider-__SID__-color-accent);
-					border-color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+					background-color: var(--serious-slider-__CID__-color-accent);
+					border-color: var(--serious-slider-__CID__-color-accent);
+					color: inherit;
 				}
 
 			<?php break;
 				case 'dark': ?>
 
 				/* Dark */
-				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
-					color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
+					color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
 					border-color: #FFF;
 				}
 
-				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					border-color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
+					border-color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
-					background-color: var(--serious-slider-__SID__-color-accent);
-					border-color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
+					background-color: var(--serious-slider-__CID__-color-accent);
+					border-color: var(--serious-slider-__CID__-color-accent);
+				}
+				
+			<?php break;
+				case 'dark2': ?>
+
+				/* Dark2 */
+				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n) {
+					color: var(--serious-slider-__CID__-color-accent);
+				}
+
+				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+					border-color: #222;
+				}
+
+				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n) {
+					border-color: var(--serious-slider-__CID__-color-accent);
+				}
+
+				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n+1)  {
+					background-color: var(--serious-slider-__CID__-color-accent);
+					border-color: var(--serious-slider-__CID__-color-accent);
 				}
 
 			<?php break;
 				case 'square': ?>
 
 				/* Square */
-				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
+					background-color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
+				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #fff;
-					color: var(--serious-slider-__SID__-color-accent);
+					color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
+					color: var(--serious-slider-__CID__-color-accent);
 					background: #FFF;
 				}
 
-				.serious-slider-__SID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
+				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
 					color: #fff;
-					background-color: var(--serious-slider-__SID__-color-accent);
+					background-color: var(--serious-slider-__CID__-color-accent);
 				}
 
 			<?php break;
 				case 'tall': ?>
 
 				/* Tall */
-				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-__SID__-color-accent);
+				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
+					background-color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
+				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
 					background: #FFF;
-					color: var(--serious-slider-__SID__-color-accent);
+					color: var(--serious-slider-__CID__-color-accent);
 				}
 
-				.serious-slider-__SID__.seriousslider-tall .seriousslider-caption-buttons a:hover {
+				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:hover {
 					opacity: 0.8;
 				}
 
 			<?php break;
 				case 'captionleft': ?>
 
-				/* Left caption */
-				.serious-slider-__SID__.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
-					color: var(--serious-slider-__SID__-color-accent);
+				/* Caption Left */
+				.serious-slider-__CID__.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
+					color: var(--serious-slider-__CID__-color-accent);
+				}
+
+			<?php
+				case 'captionbottom': ?>
+
+				/* Caption Bottom */
+				.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-caption-buttons a:hover {
 				}
 
 			<?php
 				break;
-				default:
+				default: ?> /* <?php echo esc_html($theme) ?> */ <?php
 				break;
 			} // switch($theme)
 
 		$this->custom_style[] = str_replace(
 			array(
-				'__SID__', 			// slider ctp id
+				'__CID__', 			// slider ctp id
 				'__TRANSITION__', 	// animation transition duration (s)
 				'__ACCENT__', 		// configured accent color, hex
 				'__ACCENT_RGB__', 	// configured accent color, rgba
 			),
 			array(
-				intval( $sid ),
+				esc_attr( $cid ),
 				esc_html( round(intval($transition)/1000,2) ) . 's',
 				esc_html( $this->sanitizer->color_clean( $accent ) ),
 				esc_html( $this->sanitizer->hex2rgb( $accent ) ),
@@ -276,16 +321,12 @@ class Cryout_Serious_Slider_Shortcode {
 		);
 		add_action( 'wp_footer', array($this, 'shortcode_style') );
 		ob_start() ?>
-		var interval = <?php echo intval( $delay ) ?>/200;
-		jQuery(document).ready(function(){
 
 			jQuery('#serious-slider-<?php echo esc_attr( $cid ) ?>').carousel({
 				interval: <?php if ($autoplay) echo intval( $delay ); else echo 'false'; ?>,
-				pause: '<?php echo intval($hover) ?>',
+				pause: <?php echo intval($hover) ?>,
 				stransition: <?php echo intval($transition) ?>
 			});
-
-		});
 
 		<?php
 		$this->custom_script[] = ob_get_clean();
@@ -363,7 +404,7 @@ class Cryout_Serious_Slider_Shortcode {
 			<div class="seriousslider-indicators">
 				<ol class="seriousslider-indicators-inside">
 					<?php for ($i=0;$i<$counter;$i++) { ?>
-					<li data-target="#serious-slider-<?php echo intval( $cid ) ?>" data-slide-to="<?php echo intval($i) ?>" <?php if ($i==0) echo 'class="active"' ?>></li>
+					<li data-target="#serious-slider-<?php echo esc_attr( $cid ) ?>" data-slide-to="<?php echo intval($i) ?>" <?php if ($i==0) echo 'class="active"' ?> role="button"></li>
 					<?php } ?>
 				</ol>
 			</div>

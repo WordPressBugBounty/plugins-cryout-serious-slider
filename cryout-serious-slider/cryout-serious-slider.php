@@ -2,7 +2,7 @@
 Plugin Name: Cryout Serious Slider
 Plugin URI: https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider
 Description: A free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
-Version: 1.3.1
+Version: 1.3.2
 Author: Cryout Creations
 Author URI: https://www.cryoutcreations.eu
 Text Domain: cryout-serious-slider
@@ -15,7 +15,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 class Cryout_Serious_Slider {
 
-	public $version = "1.3.1";
+	public $version = "1.3.2";
 	public $options = array();
 	public $shortcode_tag = 'serious-slider';
 	public $mce_tag = 'serious_slider';
@@ -30,7 +30,7 @@ class Cryout_Serious_Slider {
 	private $aboutpage = '';
 	private $addnewpage = '';
 	private $plugin_dir = '';
-	private $plugin_url = '';
+	public $plugin_url = '';
 	private $sanitizer = NULL;
 	private $justsampled = false;
 
@@ -42,7 +42,7 @@ class Cryout_Serious_Slider {
 		'cryout_serious_slider_responsiveness' => 'maintain', // 'legacy', 'maintain'
 		'cryout_serious_slider_hidetitles' => 0, 		// 1 = hide
 
-		'cryout_serious_slider_theme' => 'light',		// light, light2, dark, square, tall, captionleft, captionbottom, theme
+		'cryout_serious_slider_theme' => 'light',		// light, light2, dark, dark2, square, tall, captionleft, captionbottom, theme
 		'cryout_serious_slider_shadow' => 'none',		// none, level1, level2, level3, sharp, diffuse, dreamy, shorter, longer
 		'cryout_serious_slider_overlay' => 1, 			// 1 = autohide, 2 = visible
 		'cryout_serious_slider_textsize' => '1.0', 		// em
@@ -56,7 +56,7 @@ class Cryout_Serious_Slider {
 		'cryout_serious_slider_hover' => 'hover', 		// hover, false
 		'cryout_serious_slider_delay' => 5000,			// ms
 		'cryout_serious_slider_transition' => 1000,		// ms
-		'cryout_serious_slider_captionanimation' => 'slide'	// ms
+		'cryout_serious_slider_captionanimation' => 'slide'	// none, fade, slide, blur, zoomin, zoomout
 	);
 
 	public function __construct(){

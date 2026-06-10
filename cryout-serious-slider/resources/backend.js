@@ -21,6 +21,11 @@ jQuery(document).ready( function() {
 			jQuery('.seriousslider-new-slider-wrapper').slideDown( 350 );
 		});
 	});
+	
+	jQuery('body').on('click', '#toggle_advanced', function() {
+		jQuery(this).hide();
+		jQuery(this).parent().siblings('textarea').show(0);
+	})
 
 	/*
 	 * bind the media uploader at current and future ( 'live()' ) image upload buttons

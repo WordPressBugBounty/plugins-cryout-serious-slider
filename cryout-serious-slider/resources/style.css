@@ -27,6 +27,7 @@
         ## Light Theme
         ## Light 2 Theme
         ## Dark Theme
+        ## Dark 2 Theme
         ## Square Theme
         ## Tall Theme
         ## Caption Left Theme
@@ -999,6 +1000,91 @@
 
 .seriousslider-dark .seriousslider-indicators li.active {
 	background-color: rgba(255, 255, 255, 1);
+}
+
+/* ## Dark 2 Theme */
+.seriousslider-dark2 .seriousslider-caption-title {
+	font-weight: bold;
+    color: #222;
+}
+
+.seriousslider-dark2 .seriousslider-caption-text {
+	font-weight: normal;
+    color: #444;
+}
+
+.seriousslider-dark2 .seriousslider-caption-buttons a {
+    display: inline-block;
+    padding: 10px 30px;
+    border: 2px solid rgba(0, 0, 0, .75);;
+    font-weight: bold;
+	letter-spacing: 1px;
+	text-shadow: 0 0;
+    text-transform: uppercase;
+    color: #222;
+    background: rgba(0, 0, 0, .75);
+    -webkit-transition: .3s ease-out;
+    transition: .3s ease-out;
+}
+
+.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n) {
+    background: #222;
+    border-color: #222;
+}
+
+.seriousslider-dark2 .seriousslider-control {
+	font-size: 34px;
+	color: #fff;
+	-webkit-transition: .3s ease-out;
+	transition: .3s ease-out;
+}
+
+.seriousslider-dark2 .seriousslider-control:hover {
+	opacity: 1;
+}
+
+.seriousslider-dark2 .seriousslider-control:active {
+	opacity: .5;
+}
+
+.seriousslider-dark2 .seriousslider-control .sicon-prev:before {
+	content: '\e900';
+}
+
+.seriousslider-dark2 .seriousslider-control .sicon-next:before {
+	content: '\e901';
+}
+
+.seriousslider-dark2 .seriousslider-control .control-arrow {
+	padding: 12px;
+    background: rgba(0, 0, 0, .5);
+}
+
+.seriousslider-dark2 .seriousslider-indicators li {
+	width: 14px;
+	height: 14px;
+    border: 3px solid rgba(34, 34, 34, 0.2);
+	background-color: rgba(0, 0, 0, 0.5);
+    background-clip: padding-box;
+    -webkit-transition: .3s ease-out;
+    transition: .3s ease-out;
+}
+
+.seriousslider-dark2 .seriousslider-indicators li:hover {
+	background-color: rgba(34, 34, 34, .5);
+}
+
+.seriousslider-dark2 .seriousslider-indicators li.active {
+	background-color: rgba(34, 34, 34, 1);
+}
+
+.seriousslider-dark2.seriousslider-textstyle-bgcolor .seriousslider-caption-title span,
+.seriousslider-dark2.seriousslider-textstyle-bgcolor .seriousslider-caption-text > p {
+    background-color: rgba(255,255,255,.25);
+}
+
+.seriousslider-dark2 .seriousslider-indicators li {
+	border-radius: 0;
 }
 
 /* ## Square Theme */

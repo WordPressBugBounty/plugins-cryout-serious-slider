@@ -91,6 +91,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 			array(	'light' 	=> __( 'Light', 'cryout-serious-slider' ),
 					'light2' 	=> __( 'Light 2', 'cryout-serious-slider' ),
 					'dark' 		=> __( 'Dark', 'cryout-serious-slider' ),
+					'dark2' 	=> __( 'Dark 2', 'cryout-serious-slider' ),
 					'square'	=> __( 'Square', 'cryout-serious-slider' ),
 					'tall'		=> __( 'Tall', 'cryout-serious-slider' ),
 					'captionleft'	=> __( 'Caption Left', 'cryout-serious-slider' ),

@@ -296,6 +296,7 @@ select#filter-by-date {
     color: #32373c;
     outline: 0 none;
     transition: border-color 50ms ease-in-out 0s;
+    line-height: 1.5; /* wp 7.0 override */
 }
 
 #seriousslider-tabs input[name*='cryout']:focus,
@@ -323,6 +324,14 @@ select#filter-by-date {
 	font-weight: bold;
 	background: #FFF;
 	border: 2px solid #DDD;
+}
+
+#floater-right textarea.second {
+	font-weight: 400;
+	padding: 0.7em 1em;
+	overflow-x: auto;
+	white-space: nowrap;
+	display: none;
 }
 
 @media (min-width: 1280px) {

@@ -18,6 +18,25 @@ if ( !defined( 'ABSPATH' ) ) exit;
 					<h3><?php esc_html_e('Template', 'cryout-serious-slider') ?></h3>
 					<p><?php esc_html_e('Use the PHP code to include the slider directly in files', 'cryout-serious-slider') ?></p>
 					<textarea readonly="readonly" rows="3"><?php printf( "&lt;?php\n    echo do_shortcode( '[serious-slider id=%s]' );\n ?&gt;", intval( $term_ID ) ) ?></textarea>
+					<br><br>
+					<p><?php esc_html_e('Advanced Parameters', 'cryout-serious-slider') ?> <button id="toggle_advanced" type="button">+</button></p>
+					<textarea readonly="readonly" rows="17" class="second"><?php echo esc_textarea( preg_replace('/\s{2,}/m', PHP_EOL, '
+						hidetitle=true|false
+						hidecaption=true|false
+						width=number
+						height=number
+						theme=light|light2|dark|dark2|square|tall|captionleft|captionbottom|theme
+						accent=#123456
+						responsiveness=legacy|maintain
+						align=left|center|right|justify
+						textstyle=none|textshadow|bgcolor
+						animation=fade|slide|overslide|underslide|parallax|hflip|vflip
+						autoplay=true|false
+						hover=hover|false
+						delay=number (ms)
+						transition=number (ms)
+						orderby=none|ID|author|title|name|date|modified|rand|menu_order
+						order=ASC|DESC	') ); ?></textarea>
 				</div>
 			</div>
 		</div>

@@ -85,7 +85,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 							</div>
 							<div id="functionality">
 								<ul>
-									<li>Our image slider uses WordPress core functionality only, providing you with the familiar WordPress interface for creating both slides and slides.</li>
+									<li>Our image slider uses WordPress core functionality, providing you with the familiar WordPress interface for creating both slides and slides.</li>
 									<li>Easily transfer existing slides from one slider to another</li>
 									<li>Schedule slides to automatically become visible at any time in the future.</li>
 									<li>Quickly restore deleted slides from the Trash</li>
@@ -107,14 +107,14 @@ if ( !defined( 'ABSPATH' ) ) exit;
 							<div class="postbox">
 								<h3 style="text-align: center;" class="hndle">
 									<img id="serious-slider-logo" src="<?php echo esc_url( plugins_url('../resources/images/serious-slider-128.png', __FILE__) ); ?>" />
-									<span><strong><?php echo esc_html( $this->title ); ?></strong></span>
+									<span><strong><?php esc_html_e( $this->title ); ?></strong></span>
 								</h3>
 
 								<div class="inside">
 									<div style="text-align: center; margin: auto">
 										<strong><?php 
 										/* translators: outputs the plugin's version number */
-										esc_html( sprintf( __('version: %s', 'cryout-serious-slider'), $this->version ) ); 
+										esc_html_e( sprintf( __('version: %s', 'cryout-serious-slider'), $this->version ) ); 
 										?></strong><br>
 										<?php esc_html_e('by','cryout-serious-slider') ?> Cryout Creations<br>
 										<a class="button button-primary" href="http://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider" target="_blank"><?php esc_html_e('Plugin Homepage', 'cryout-serious-slider') ?></a>
