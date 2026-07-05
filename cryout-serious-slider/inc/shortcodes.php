@@ -21,27 +21,17 @@ class Cryout_Serious_Slider_Shortcode {
 
 		include_once( plugin_dir_path(__FILE__) . '/helpers.php' );
 		$this->sanitizer = new Cryout_Serious_Slider_Sanitizers;
+
+		add_action( 'wp_footer', array( $this, 'shortcode_style'  ) );
+		// js is attached by shortcode_render
 	}
 
 	function shortcode_style() {
-
+		if ( empty( $this->custom_style ) ) return;
 		$css = preg_replace( '/([\n\s])+/', ' ', wp_strip_all_tags( implode( PHP_EOL, $this->custom_style ) ) );
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		printf( '<style type="text/css">/* cryout serious slider styling */ %s</style>', $css );
-	} // shortcode_slyle()
-
-	function shortcode_script() {
-		ob_start();
-		?><script type="text/javascript">
-			/* cryout serious slider script */
-			jQuery(document).ready(function(){
-		<?php
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo implode( PHP_EOL, $this->custom_script ); ?>
-			})
-		</script><?php
-		ob_end_flush();
-	} // shortcode_script()
+	} // shortcode_style()
 
 	function shortcode_render($attr) {
 
@@ -51,31 +41,12 @@ class Cryout_Serious_Slider_Shortcode {
 		if ( empty($attr['id'])) { return; } 
 		
 		$sid = intval($attr['id']); 									// slider cpt tax id from backend
-		$cid = sprintf( '%d-rnd%.4d', abs($sid), wp_rand(1000,9999) );	// slider div id on frontend (includes random number for uniqueness)
+		$cid = sprintf( '%d-r%.4d', abs($sid), wp_rand(100,999) );		// slider div id on frontend (includes random number for uniqueness)
 
 		$options = apply_filters('cryout_serious_slider_shortcode_attributes', $this->shortcode_options( $sid ), $attr, $sid);
 		extract($options);
 
-
-		switch ($sort) {
-			case 'order':
-			// sort by order param
-			$orderby = 'menu_order';
-			$order = 'ASC';
-			break;
-		case 'rand':
-			// sort by order param
-			$orderby = 'rand';
-			$order = 'ASC';
-			break;
-		default:
-			// sort by publish date (default)
-			$orderby = 'date';
-			$order = 'DESC';
-			break;
-		} // switch
-
-		if (!empty($attr['count'])) $count = intval($attr['count']); else $count = -1;
+		if (!empty($attr['count'])) 		$count = intval($attr['count']); else $count = 100; // use a sane failsafe
 
 		// allow shortcode attributes to override configured options
 		if (!empty($attr['width'])) 		$width = absint( $attr['width'] );
@@ -89,12 +60,42 @@ class Cryout_Serious_Slider_Shortcode {
 		if (!empty($attr['hover'])) 		$hover = sanitize_text_field( $attr['hover'] );
 		if (!empty($attr['delay'])) 		$delay = intval( $attr['delay'] );
 		if (!empty($attr['transition'])) 	$transition = intval( $attr['transition'] );
-		$hidetitle = ( !empty($hidetitles) || !empty($attr['hidetitle']) );
-		$hidecaption = ( !empty($hidecaption) || !empty($attr['hidecaption']) );
+		if (!empty($attr['textsize'])) 		$textsize = floatval( $attr['textsize'] );
+		if (!empty($attr['hidetitles'])) 	$hidetitles = true; // else value from defaults
+		if (!empty($attr['hidecaption'])) 	$hidecaption = true; // else value from defaults
 		if (!empty($attr['autoplay'])) 		$autoplay = sanitize_text_field($attr['autoplay']);
+		
+		// shortcuts for basic sorting
+		$allowed_sort = array( 'date', 'order', 'rand' );
+		if ( !empty($attr['sort']) && in_array( strtolower( $attr['sort'] ), $allowed_sort ) )
+											$sort = sanitize_text_field($attr['sort']);
 
-		// allow order override via shortcode
-		if (!empty($attr['orderby'])) $orderby = esc_attr($attr['orderby']);
+		switch ($sort) {
+			case 'order':
+			// sort by order param
+			$orderby = 'menu_order';
+			$order = 'ASC';
+			break;
+		case 'rand':
+			// sort by order param
+			$orderby = 'rand';
+			$order = 'ASC';
+			break;
+			case 'date':
+		default:
+			// sort by publish date (default)
+			$orderby = 'date';
+			$order = 'DESC';
+			break;
+		} // switch
+
+		// or specific order controls
+		$allowed_orderby = array( 'none', 'ID', 'author', 'title', 'name', 'date', 'modified', 'rand', 'menu_order' );
+		if ( !empty( $attr['orderby'] ) && in_array( strtolower( $attr['orderby'] ), $allowed_orderby ) )
+											$orderby = sanitize_text_field( $attr['orderby'] );
+		$allowed_order = array( 'asc', 'desc' );
+		if ( !empty( $attr['order'] ) && in_array( strtolower( $attr['order'] ), $allowed_order ) )
+											$order = sanitize_text_field( $attr['order'] );
 
 		$slider_classes = array();
 		$slider_classes[] = 'seriousslider-overlay' . $overlay;
@@ -118,7 +119,7 @@ class Cryout_Serious_Slider_Shortcode {
 					'tax_query' => array(
 					array(
 						'taxonomy' => $cryout_serious_slider->taxonomy,
-						'field'    => 'id',
+						'field'    => 'term_id',
 						'terms'    => array( $sid ),
 					),
 				),
@@ -129,208 +130,114 @@ class Cryout_Serious_Slider_Shortcode {
 		$this->id = $sid;
 		$this->cid = $cid;
 
-		ob_start(); ?>
-			:root{
-				--serious-slider-__CID__-color-accent: __ACCENT__;
-				--serious-slider-__CID__-color-theme: '<?php echo $theme ?>';
-				--serious-slider-__CID__-width: <?php echo intval( $width ); ?>px;
-				--serious-slider-__CID__-height: <?php echo intval( $height ); ?>px;
-			}
+		$accent_clean  = esc_html( $this->sanitizer->color_clean( $accent ) );
+		$accent_rgb    = esc_html( $this->sanitizer->hex2rgb( $accent ) );
+		$transition_s  = esc_html( round( intval( $transition ) / 1000, 2 ) ) . 's';
+		$cid_attr      = esc_attr( $cid );
 			
-			.serious-slider-__CID__ { max-width: var(--serious-slider-__CID__-width); }
-			.serious-slider-__CID__.seriousslider-sizing1, .serious-slider-__CID__.seriousslider-sizing1 img { max-height: var(--serious-slider-__CID__-height);  }
-			.serious-slider-__CID__.seriousslider-sizing2, .serious-slider-__CID__.seriousslider-sizing2 img.item-image { height: var(--serious-slider-__CID__-height);  }
-			.serious-slider-__CID__ .seriousslider-caption-inside { max-width: <?php echo intval($caption_width) ?>px;  font-size: <?php echo esc_html( round($textsize,2) ) ?>em; }
-
-			.serious-slider-__CID__ .seriousslider-inner > .item {
-				-webkit-transition-duration: __TRANSITION__;
-				-o-transition-duration: __TRANSITION__;
-				transition-duration: __TRANSITION__;
-			}
-
-			.serious-slider-__CID__.seriousslider-textstyle-bgcolor .seriousslider-caption-title span {
-				background-color: rgba( __ACCENT_RGB__, 0.6);
-			}
-
-			/* Indicators */
-			.serious-slider-__CID__.seriousslider-dark .seriousslider-indicators li.active,
-			.serious-slider-__CID__.seriousslider-dark2 .seriousslider-indicators li.active,
-			.serious-slider-__CID__.seriousslider-square .seriousslider-indicators li.active,
-			.serious-slider-__CID__.seriousslider-tall .seriousslider-indicators li.active,
-			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-indicators li.active,
-			.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-indicators li.active {
-				background-color: rgba( __ACCENT_RGB__, 0.8);
-			}
-
-			/* Arrows */
-			.serious-slider-__CID__.seriousslider-dark .seriousslider-control:hover .control-arrow,
-			.serious-slider-__CID__.seriousslider-dark2 .seriousslider-control:hover .control-arrow,
-			.serious-slider-__CID__.seriousslider-square .seriousslider-control:hover .control-arrow,
-			.serious-slider-__CID__.seriousslider-tall .seriousslider-control .control-arrow {
-				background-color: rgba( __ACCENT_RGB__, 0.8);
-			}
-
-			.serious-slider-__CID__.seriousslider-tall .seriousslider-control:hover .control-arrow {
-				color: rgba( __ACCENT_RGB__, 1);
-				background-color: #FFF;
-			}
-
-			.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-control .control-arrow,
-			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-control .control-arrow {
-				color: rgba( __ACCENT_RGB__, .8);
-			}
-
-			.serious-slider-__CID__.seriousslider-captionleft .seriousslider-control:hover .control-arrow {
-				color: rgba( __ACCENT_RGB__, 1);
-			}
-
-			/* Buttons */
-
-			<?php switch ($theme) {
-				case 'light': ?>
+		// instance-specific styling
+		$theme_css = '';
+		switch ( $theme ) {
+			case 'light':
+				$theme_css = "
 
 				/* Light */
-				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
-				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					background-color: var(--serious-slider-__CID__-color-accent);
-					border-color: var(--serious-slider-__CID__-color-accent);
-					color: inherit;
-				}
-
-			<?php break;
-				case 'dark': ?>
+				.serious-slider-{$cid_attr}.seriousslider-light .seriousslider-caption-buttons a:nth-child(2n+1),
+				.serious-slider-{$cid_attr}.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n) { color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-light .seriousslider-caption-buttons a:hover:nth-child(2n+1) { background-color: {$accent_clean}; border-color: {$accent_clean}; color: inherit; }";
+				break;
+			case 'dark':
+				$theme_css = "
 
 				/* Dark */
-				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) {
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					border-color: #FFF;
-				}
-
-				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					border-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1)  {
-					background-color: var(--serious-slider-__CID__-color-accent);
-					border-color: var(--serious-slider-__CID__-color-accent);
-				}
-				
-			<?php break;
-				case 'dark2': ?>
+				.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n) { color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n+1) { border-color: #FFF; }
+				.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-caption-buttons a:hover:nth-child(2n) { border-color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-caption-buttons a:nth-child(2n+1) { background-color: {$accent_clean}; border-color: {$accent_clean}; }";
+				break;
+			case 'dark2':
+				$theme_css = "
 
 				/* Dark2 */
-				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n) {
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					border-color: #222;
-				}
-
-				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					border-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n+1)  {
-					background-color: var(--serious-slider-__CID__-color-accent);
-					border-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-			<?php break;
-				case 'square': ?>
+				.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n) { color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n+1) { border-color: #222; }
+				.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-caption-buttons a:hover:nth-child(2n) { border-color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-caption-buttons a:nth-child(2n+1) { background-color: {$accent_clean}; border-color: {$accent_clean}; }";
+				break;
+			case 'square':
+				$theme_css = "
 
 				/* Square */
-				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) {
-					background: #fff;
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) {
-					color: var(--serious-slider-__CID__-color-accent);
-					background: #FFF;
-				}
-
-				.serious-slider-__CID__.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) {
-					color: #fff;
-					background-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-			<?php break;
-				case 'tall': ?>
+				.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n+1) { background-color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-caption-buttons a:nth-child(2n) { background: #fff; color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n+1) { color: {$accent_clean}; background: #FFF; }
+				.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-caption-buttons a:hover:nth-child(2n) { color: #fff; background-color: {$accent_clean}; }";
+				break;
+			case 'tall':
+				$theme_css = "
 
 				/* Tall */
-				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) {
-					background-color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) {
-					background: #FFF;
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-				.serious-slider-__CID__.seriousslider-tall .seriousslider-caption-buttons a:hover {
-					opacity: 0.8;
-				}
-
-			<?php break;
-				case 'captionleft': ?>
+				.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n+1) { background-color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-caption-buttons a:nth-child(2n) { background: #FFF; color: {$accent_clean}; }
+				.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-caption-buttons a:hover { opacity: 0.8; }";
+				break;
+			case 'captionleft':
+				$theme_css = "
 
 				/* Caption Left */
-				.serious-slider-__CID__.seriousslider-captionleft .seriousslider-caption-buttons a:hover {
-					color: var(--serious-slider-__CID__-color-accent);
-				}
-
-			<?php
-				case 'captionbottom': ?>
+				.serious-slider-{$cid_attr}.seriousslider-captionleft .seriousslider-caption-buttons a:hover { color: {$accent_clean}; }
 
 				/* Caption Bottom */
-				.serious-slider-__CID__.seriousslider-captionbottom .seriousslider-caption-buttons a:hover {
-				}
-
-			<?php
+				.serious-slider-{$cid_attr}.seriousslider-captionbottom .seriousslider-caption-buttons a:hover { }";
 				break;
-				default: ?> /* <?php echo esc_html($theme) ?> */ <?php
+			case 'captionbottom':
+				$theme_css = "
+				/* Caption Bottom */
+				.serious-slider-{$cid_attr}.seriousslider-captionbottom .seriousslider-caption-buttons a:hover { }";
 				break;
 			} // switch($theme)
 
-		$this->custom_style[] = str_replace(
-			array(
-				'__CID__', 			// slider ctp id
-				'__TRANSITION__', 	// animation transition duration (s)
-				'__ACCENT__', 		// configured accent color, hex
-				'__ACCENT_RGB__', 	// configured accent color, rgba
-			),
-			array(
-				esc_attr( $cid ),
-				esc_html( round(intval($transition)/1000,2) ) . 's',
-				esc_html( $this->sanitizer->color_clean( $accent ) ),
-				esc_html( $this->sanitizer->hex2rgb( $accent ) ),
-			),
-			ob_get_clean()
+		$this->custom_style[] =
+			":root{
+				--serious-slider-{$cid_attr}-color-accent: {$accent_clean};
+				--serious-slider-{$cid_attr}-color-theme: '{$theme}';
+				--serious-slider-{$cid_attr}-width: " . intval( $width ) . "px;
+				--serious-slider-{$cid_attr}-height: " . intval( $height ) . "px;
+			}
+			.serious-slider-{$cid_attr} { max-width: var(--serious-slider-{$cid_attr}-width); }
+			.serious-slider-{$cid_attr}.seriousslider-sizing1, .serious-slider-{$cid_attr}.seriousslider-sizing1 img { max-height: var(--serious-slider-{$cid_attr}-height); }
+			.serious-slider-{$cid_attr}.seriousslider-sizing2, .serious-slider-{$cid_attr}.seriousslider-sizing2 img.item-image { height: var(--serious-slider-{$cid_attr}-height); }
+			.serious-slider-{$cid_attr} .seriousslider-caption-inside { max-width: " . intval( $caption_width ) . "px; font-size: " . esc_html( round( $textsize, 2 ) ) . "em; }
+			.serious-slider-{$cid_attr} .seriousslider-inner > .item { -webkit-transition-duration: {$transition_s}; -o-transition-duration: {$transition_s}; transition-duration: {$transition_s}; }
+			.serious-slider-{$cid_attr}.seriousslider-textstyle-bgcolor .seriousslider-caption-title span { background-color: rgba( {$accent_rgb}, 0.6); }
+			/* Indicators */
+			.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-indicators li.active,
+			.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-indicators li.active,
+			.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-indicators li.active,
+			.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-indicators li.active,
+			.serious-slider-{$cid_attr}.seriousslider-captionleft .seriousslider-indicators li.active,
+			.serious-slider-{$cid_attr}.seriousslider-captionbottom .seriousslider-indicators li.active { background-color: rgba( {$accent_rgb}, 0.8); }
+			/* Arrows */
+			.serious-slider-{$cid_attr}.seriousslider-dark .seriousslider-control:hover .control-arrow,
+			.serious-slider-{$cid_attr}.seriousslider-dark2 .seriousslider-control:hover .control-arrow,
+			.serious-slider-{$cid_attr}.seriousslider-square .seriousslider-control:hover .control-arrow,
+			.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-control .control-arrow { background-color: rgba( {$accent_rgb}, 0.8); }
+			.serious-slider-{$cid_attr}.seriousslider-tall .seriousslider-control:hover .control-arrow { color: rgba( {$accent_rgb}, 1); background-color: #FFF; }
+			.serious-slider-{$cid_attr}.seriousslider-captionbottom .seriousslider-control .control-arrow,
+			.serious-slider-{$cid_attr}.seriousslider-captionleft .seriousslider-control .control-arrow { color: rgba( {$accent_rgb}, .8); }
+			.serious-slider-{$cid_attr}.seriousslider-captionleft .seriousslider-control:hover .control-arrow { color: rgba( {$accent_rgb}, 1); }
+			/* Buttons */
+			{$theme_css}";
+
+		// instance-specific js attached to the enqueued slider script handle
+		$instance_js = sprintf(
+			"jQuery('#serious-slider-%s').carousel({interval:%s,pause:'%s',stransition:%d});",
+			$cid_attr,
+			$autoplay ? intval( $delay ) : 'false',
+			esc_js( $hover ),
+			intval( $transition )
 		);
-		add_action( 'wp_footer', array($this, 'shortcode_style') );
-		ob_start() ?>
-
-			jQuery('#serious-slider-<?php echo esc_attr( $cid ) ?>').carousel({
-				interval: <?php if ($autoplay) echo intval( $delay ); else echo 'false'; ?>,
-				pause: <?php echo intval($hover) ?>,
-				stransition: <?php echo intval($transition) ?>
-			});
-
-		<?php
-		$this->custom_script[] = ob_get_clean();
-		add_action( 'wp_footer', array($this, 'shortcode_script') );
+		wp_add_inline_script( 'cryout-serious-slider-script', $instance_js );
 
 		if ( $the_query->have_posts() ):
 		ob_start(); ?>
@@ -378,8 +285,8 @@ class Cryout_Serious_Slider_Shortcode {
 				<?php if (( !empty($slide_title) || !empty($slide_text) ) && !$hidecaption): ?>
 				<div class="seriousslider-caption">
 					<div class="seriousslider-caption-inside">
-						<?php if (!empty($slide_title) && !$hidetitle) { ?><div class="seriousslider-caption-title"><span><?php the_title(); ?></span></div><?php } ?>
-						<?php if (!empty($slide_text)) { ?><div class="seriousslider-caption-text"><?php the_content() ?></div><?php } ?>
+						<?php if (!empty($slide_title) && !$hidetitles) { ?><div class="seriousslider-caption-title"><span><?php the_title(); ?></span></div><?php } ?>
+						<?php if (!empty($slide_text)) { ?><div class="seriousslider-caption-text"><?php echo wp_kses_post( strip_shortcodes( wpautop( $slide_text ) ) ) ?></div><?php } ?>
 						<div class="seriousslider-caption-buttons">
 							<?php for ( $i=1; $i<=$this->butts; $i++ ) { ?>
 								<?php if ( !empty($meta_buttons[$i]['label']) ) { ?>
@@ -398,7 +305,7 @@ class Cryout_Serious_Slider_Shortcode {
 			  </figure>
 			</div>
 
-			<?php endwhile; ?>
+			<?php endwhile; // $the_query->have_posts() ?>
 			</div>
 
 			<div class="seriousslider-indicators">
@@ -418,12 +325,11 @@ class Cryout_Serious_Slider_Shortcode {
 			  <span class="sr-only"><?php esc_html_e('Next Slide','cryout-serious-slider') ?></span>
 			</button>
 		</div>
+		<!-- end cryout serious slider <?php echo $cid ?> -->
 		<?php
 		wp_reset_postdata(); /* clean up the query */
 		return ob_get_clean();
-		endif; ?>
-		<!-- end cryout serious slider -->
-		<?php
+		endif; 
 
 	} // shortcode_render()
 
@@ -445,7 +351,7 @@ class Cryout_Serious_Slider_Shortcode {
 
 } // class
 
-/* Initialize the shortcode class */
+/* Initialize the shortcode */
 $cryout_serious_slider_shortcode = new Cryout_Serious_Slider_Shortcode;
 
 /* FIN */

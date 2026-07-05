@@ -5,10 +5,10 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: slider, slideshow, image slider, responsive slider, wordpress slider
 Text Domain: cryout-serious-slider
-Requires at least: 4.5
+Requires at least: 5.0
 Requires PHP: 7.0
 Tested up to: 7.0
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 
 Serious Slider is a free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
 
@@ -24,36 +24,39 @@ Create beautiful, responsive slideshows within seconds.  Use minimum styling and
 
 Serious Slider uses the very familiar WordPress dashboard interface for creating slides and sliders so there's absolutely no learning curve. You just select the media image and press "Create Slider". After that it's like adding or editing WordPress posts, using featured images and other meta information like buttons and URLs.
 
-Serious Slider works with all WordPress themes and has been designed to integrate seamlessly with our own [selected themes](https://wordpress.org/themes/author/cryout-creations/ "Cryout Creations Wordpress Themes").
+Serious Slider works with all WordPress themes and has been designed to integrate seamlessly with [our own themes](https://wordpress.org/themes/author/cryout-creations/ "Cryout Creations Wordpress Themes").
 
 = Main Features =
 
 * **Create unlimited sliders with unlimited slides.** The only limit is your imagination on how to use them.
 * **Add titles, texts, buttons and links to each slide.** All slide texts support HTML tags and even other shortcodes.
 * **Easy to use media button.** Effortlessly add slideshows in posts, pages or custom post types via the "Add Slider" media button in the WordPress text editor. Then just select your desired image slider from a dropdown list, no need to remember or copy slider IDs
-* **Auto-generated Shortcodes and PHP integration.** Use the auto generated shortcode to include slideshows with themes or other plugins. Copy-paste the auto generated PHP code to integrate with custom code.
-* **Serious Slider Widget.** Display slideshows in sidebars via the provided Serious Slider widget
+* **Auto-generated Shortcodes and PHP integration.** Use the auto generated shortcode to integrate slideshows with themes or other plugins. Copy-paste the auto generated PHP code to integrate with custom code.
+* **Serious Slider Block.** Insert slideshows in the content managed with the block editor
+* **Serious Slider Widget.** Display slideshows in sidebars via the classic Serious Slider widget
 * **Use multiple sliders in the same page.**
+* **Use multiple instances of the same slider** with distinct visual configurations.
 * **Familiar admin user interface.** Create sliders and slides with the familiarity of managing posts and categories, without having to learn another user interface
 * **Lightweight and powerful.** Only minimum JavaScript and CSS3 are being loaded on your site
 * **Fast slider creation.** Create awesome, responsive WordPress slideshows in a matter of seconds
 * **Browser compatibility.** The image slider looks and behaves great on various devices and browsers
-* **7+ Appearance Styles.** Choose from different appearance styles to make the navigation arrows, bullets, buttons and colors match your site.
+* **8+ Appearance Styles.** Choose from different appearance styles to make the navigation arrows, bullets, buttons and colors match your site.
 * **7+ Transition Effects.** Fade, Slide, Overslide, Underslide, Parallax, Horizontal flip and Vertical Flip.
 * **5+ Caption Text Animations.** Choose how caption text appears on the slide: Fade, Slide, Blur and Zoom In/Out.
 * **Highly customizable.** Customize image sizes, timings, text size and alignment, text shadow, background color and accent color.
-* **Individual options for each slider.** All the customization options and set individually for every slider.
+* **Individual options for each slider.** All the customization options and set individually for every slider and locally for each slider block instance.
 * **Translation ready.** Every single line of text in the slider is translatable both in the front-end as well in the back-end. Compatible with multi-language plugins (WPML, qTranslate, PolyLang).
 * **SEO friendly.** Built with search engines in mind, the slider uses correct HTML semantics.
 * **Accessibility ready.**
-* **Once click demo content.** It's that easy, you're one click away from a working image slider to get you started.
+* **Once click demo content.** It's that easy, you're one click away from having a working image slider to get you started.
 
 = Customization Features =
 
 * Add individual URLs to target specific pages
 * Add slide buttons with customizable link, link text and "open in new window" option
 * Choose how to make text over images more visible: either add text shadow, multiline text background or full caption background
-* Choose from 7 slider styles, 7 transition effects and 5 caption text animations
+* Choose from 8 slider styles, 7 transition effects and 5 caption text animations
+* Customize block instances separately from the general slider options
 * Customize your slider's transition duration and delay
 * Choose between auto-height and fixed size for your images
 * Customize your slider's font size, text alignment, caption size and accent color
@@ -64,7 +67,7 @@ Serious Slider works with all WordPress themes and has been designed to integrat
 * Easily transfer existing slides from one slider to another
 * Schedule slides to automatically become visible at any time in the future.
 * Quickly restore deleted slides from the Trash
-* Use WordPress' text editor to add HTML content and even shortcodes to your slides
+* Use WordPress' text editor to add HTML content to your slides
 * Bulk edit slides and slides
 
 
@@ -93,18 +96,32 @@ Serious Slider works with all WordPress themes and has been designed to integrat
 1. Serious Slider default (Light) style
 2. Serious Slider Dark style with caption text background
 3. Serious Slider Caption Left style 
-4. Dashboard - create new slider 
-5. Dashboard - manage slides overview
-6. Dashboard - slider integration
+4. Serious Slider widget
+5. Dashboard - create new slider 
+6. Dashboard - manage slides overview
+7. Dashboard - slider block
+8. Dashboard - slider integration
 
 
 == Changelog ==
+
+= 1.4.0 =
+*Release date - 2026.07.05*
+
+* Added block functionality with slides preview and options control
+	* The slider block can be customized with local options separate from the slider's set options
+	* Full control of all the slider options through the block editor panels
+	* Quick links to the (classic) slider and slides management sections
+* Optimized slider-specific styling and JavaScript generation and enqueuing processes
+* Added recursion protection in slide content output (mainly to protect against slider-within-slider in the block editor) - this removes shortcode support within the slide content
+* Rewrote the slider meta options interface to make use of the new centralized options code
+* Bumped required WordPress version to 5.0 as that's the minimum version integrating blocks functionality
 
 = 1.3.2 =
 *Release date - 2026.06.10*
 
 * Fixed indicators navigation not working since 1.3.0 (due to over-sanitization)
-* Reworked sanitization for sliders styling and scripting to better meet Plugin Check (PHP) validation
+* Reworked sanitization for sliders styling and scripting to better meet Plugin Check (PCP) validation
 * Add support for overriding all configuration parameters in shortcode call and added usage hint on the admin screen
 * Added dark 2 color scheme
 * Tested for compatibility with WordPress 7.0

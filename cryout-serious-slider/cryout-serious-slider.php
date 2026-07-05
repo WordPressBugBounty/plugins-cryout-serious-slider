@@ -2,12 +2,15 @@
 Plugin Name: Cryout Serious Slider
 Plugin URI: https://www.cryoutcreations.eu/wordpress-plugins/cryout-serious-slider
 Description: A free highly efficient SEO friendly fully translatable accessibility ready image slider for WordPress. Seriously!
-Version: 1.3.2
+Version: 1.4.0
+Requires at least: 5.0
+Requires PHP: 7.0
+Tested up to: 7.0
 Author: Cryout Creations
 Author URI: https://www.cryoutcreations.eu
-Text Domain: cryout-serious-slider
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
+Text Domain: cryout-serious-slider
 */
 
 // Exit if accessed directly
@@ -15,7 +18,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 class Cryout_Serious_Slider {
 
-	public $version = "1.3.2";
+	public $version = "1.4.0";
 	public $options = array();
 	public $shortcode_tag = 'serious-slider';
 	public $mce_tag = 'serious_slider';
@@ -40,6 +43,7 @@ class Cryout_Serious_Slider {
 		'cryout_serious_slider_width' => '1920', 		// px
 		'cryout_serious_slider_height' => '800', 		// px
 		'cryout_serious_slider_responsiveness' => 'maintain', // 'legacy', 'maintain'
+		'cryout_serious_slider_hidecaption' => 0, 		// 1 = hide
 		'cryout_serious_slider_hidetitles' => 0, 		// 1 = hide
 
 		'cryout_serious_slider_theme' => 'light',		// light, light2, dark, dark2, square, tall, captionleft, captionbottom, theme
@@ -59,7 +63,11 @@ class Cryout_Serious_Slider {
 		'cryout_serious_slider_captionanimation' => 'slide'	// none, fade, slide, blur, zoomin, zoomout
 	);
 
+	// option metadata is initialized _just_in_time on init by load_localization()
+	public $option_choices = array();
+
 	public function __construct(){
+		global $cryout_serious_slider_shortcode;
 
 		// plugin variables
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
@@ -69,6 +77,7 @@ class Cryout_Serious_Slider {
 		require_once( $this->plugin_dir . 'inc/helpers.php' );
 		require_once( $this->plugin_dir . 'inc/shortcodes.php' );
 		require_once( $this->plugin_dir . 'inc/widgets.php' );
+		require_once( $this->plugin_dir . 'inc/blocks.php' );
 
 		$this->sanitizer = new Cryout_Serious_Slider_Sanitizers;
 
@@ -149,7 +158,7 @@ class Cryout_Serious_Slider {
 			// frontend script and style
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		} // if (! is_admin())
+		}
 
 		if (is_admin() ) {
 
@@ -499,6 +508,9 @@ class Cryout_Serious_Slider {
 					$this->taxonomy,
 			),
 			'register_meta_box_cb' 	=> array( $this, 'metabox_register' ),
+			// block editor: expose cpt to rest api
+			'show_in_rest'          => true,
+			'rest_base'             => 'cryout-serious-slides',
 		);
 
 		/* Register the post type. */
@@ -533,6 +545,9 @@ class Cryout_Serious_Slider {
 			'query_var'         => true,
 
 			'meta_box_cb' => array( $this, 'custom_category_picker' ), // customize taxonomy box selector
+			// block editor: expose taxonomy to rest api
+			'show_in_rest'      => true,
+			'rest_base'         => 'cryout-serious-sliders',
 		);
 
 		register_taxonomy( $this->taxonomy, array( $this->posttype ), $cat_args );
@@ -597,6 +612,208 @@ class Cryout_Serious_Slider {
 				$tax_labels->no_terms		= __( 'No sliders', 'cryout-serious-slider' );
 				$tax_labels->back_to_items	= __( '&larr; Back to Sliders', 'cryout-serious-slider' );
 			}
+
+		// option metadata shared between admin UI and block editor, keyed by $defaults keys
+		// without the 'cryout_serious_slider_' prefix; number/color fields simply omit 'choices'.
+		$this->option_choices = array(
+
+			'sort' => array(
+				'label'   => __( 'Sort Order', 'cryout-serious-slider' ),
+				'panel'   => 'general',       // general | appearance | animation
+				'control' => 'select',        // select | number | color
+				'choices' => array(
+					array( 'value' => 'date',  'label' => __( 'By date', 'cryout-serious-slider' ) ),
+					array( 'value' => 'order', 'label' => __( 'By order value', 'cryout-serious-slider' ) ),
+					array( 'value' => 'rand',  'label' => __( 'Random', 'cryout-serious-slider' ) ),
+				),
+			),
+			'sizing' => array(
+				'label'   => __( 'Slider Size', 'cryout-serious-slider' ),
+				'panel'   => 'general',       // general | appearance | animation
+				'control' => 'select',        // select | number | color
+				'choices' => array(
+					array( 'value' => '0', 'label' => __( 'Adapt to images', 'cryout-serious-slider' ) ),
+					array( 'value' => '1', 'label' => __( 'Contain images', 'cryout-serious-slider' ) ),
+					array( 'value' => '2', 'label' => __( 'Force images to size', 'cryout-serious-slider' ) ),
+				),
+			),
+			'width' => array(
+				'label'   => __( 'Width', 'cryout-serious-slider' ),
+				'panel'   => 'general',
+				'control' => 'number',
+				'um'	  => __( 'px', 'cryout-serious-slider' ),
+			),
+			'height' => array(
+				'label'   => __( 'Height', 'cryout-serious-slider' ),
+				'panel'   => 'general',
+				'control' => 'number',
+				'um'	  => __( 'px', 'cryout-serious-slider' ),
+			),
+			'responsiveness' => array(
+				'label'   => __( 'Responsiveness', 'cryout-serious-slider' ),
+				'panel'   => 'general',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'legacy',   'label' => __( 'Legacy resize', 'cryout-serious-slider' ) ),
+					array( 'value' => 'maintain', 'label' => __( 'Maintain height', 'cryout-serious-slider' ) ),
+				),
+			),
+			'hidecaption'  => array(
+				'label'   => __( 'Captions', 'cryout-serious-slider' ),
+				'panel'   => 'general',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => '0', 'label' => __( 'Enabled', 'cryout-serious-slider' ) ),
+					array( 'value' => '1', 'label' => __( 'Disabled', 'cryout-serious-slider' ) ),
+				),
+			),
+			'hidetitles'  => array(
+				'label'   => __( 'Slides Titles', 'cryout-serious-slider' ),
+				'panel'   => 'general',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => '0', 'label' => __( 'Enabled', 'cryout-serious-slider' ) ),
+					array( 'value' => '1', 'label' => __( 'Disabled', 'cryout-serious-slider' ) ),
+				),
+			),
+			'theme' => array(
+				'label'   => __( 'Style', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'light',         'label' => __( 'Light', 'cryout-serious-slider' ) ),
+					array( 'value' => 'light2',        'label' => __( 'Light 2', 'cryout-serious-slider' ) ),
+					array( 'value' => 'dark',          'label' => __( 'Dark', 'cryout-serious-slider' ) ),
+					array( 'value' => 'dark2',         'label' => __( 'Dark 2', 'cryout-serious-slider' ) ),
+					array( 'value' => 'square',        'label' => __( 'Square', 'cryout-serious-slider' ) ),
+					array( 'value' => 'tall',          'label' => __( 'Tall', 'cryout-serious-slider' ) ),
+					array( 'value' => 'captionleft',   'label' => __( 'Caption Left', 'cryout-serious-slider' ) ),
+					array( 'value' => 'captionbottom', 'label' => __( 'Caption Bottom', 'cryout-serious-slider' ) ),
+					array( 'value' => 'theme',         'label' => __( 'Cryout Theme', 'cryout-serious-slider' ) ),
+				),
+			),
+			'shadow' => array(
+				'label'   => __( 'Shadow', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'none',    'label' => __( 'None', 'cryout-serious-slider' ) ),
+					array( 'value' => 'level1',  'label' => __( 'Level 1', 'cryout-serious-slider' ) ),
+					array( 'value' => 'level2',  'label' => __( 'Level 2', 'cryout-serious-slider' ) ),
+					array( 'value' => 'level3',  'label' => __( 'Level 3', 'cryout-serious-slider' ) ),
+					array( 'value' => 'sharp',   'label' => __( 'Sharp', 'cryout-serious-slider' ) ),
+					array( 'value' => 'diffuse', 'label' => __( 'Diffuse', 'cryout-serious-slider' ) ),
+					array( 'value' => 'dreamy',  'label' => __( 'Dreamy', 'cryout-serious-slider' ) ),
+					array( 'value' => 'shorter', 'label' => __( 'Shorter', 'cryout-serious-slider' ) ),
+					array( 'value' => 'longer',  'label' => __( 'Longer', 'cryout-serious-slider' ) ),
+				),
+			),
+			'overlay' => array(
+				'label'   => __( 'Bullets and Navigation', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => '0', 'label' => __( 'Always hidden', 'cryout-serious-slider' ) ),
+					array( 'value' => '1', 'label' => __( 'Appear on hover', 'cryout-serious-slider' ) ),
+					array( 'value' => '2', 'label' => __( 'Always visible', 'cryout-serious-slider' ) ),
+				),
+			),
+			'textsize'    => array(
+				'label'   => __( 'Base Font Size', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'number',
+				'um'	  => __( 'em', 'cryout-serious-slider' ), 
+			),
+			'align' => array(
+				'label'   => __( 'Caption Alignment', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'left',    'label' => __( 'Left', 'cryout-serious-slider' ) ),
+					array( 'value' => 'center',  'label' => __( 'Center', 'cryout-serious-slider' ) ),
+					array( 'value' => 'right',   'label' => __( 'Right', 'cryout-serious-slider' ) ),
+					array( 'value' => 'justify', 'label' => __( 'Justify', 'cryout-serious-slider' ) ),
+				),
+			),
+			'caption_width' => array(
+				'label'   => __( 'Caption Width', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'number',
+				'um'	  => __( 'px', 'cryout-serious-slider' ),
+			),
+			'textstyle' => array(
+				'label'   => __( 'Text Style', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'none',       'label' => __( 'None', 'cryout-serious-slider' ) ),
+					array( 'value' => 'textshadow', 'label' => __( 'Text Shadow', 'cryout-serious-slider' ) ),
+					array( 'value' => 'bgcolor',    'label' => __( 'Background Color', 'cryout-serious-slider' ) ),
+				),
+			),
+			'accent' => array(
+				'label'   => __( 'Accent Color', 'cryout-serious-slider' ),
+				'panel'   => 'appearance',
+				'control' => 'color',
+			),
+			'autoplay' => array(
+				'label'   => __( 'Autoplay', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => '1', 'label' => __( 'Enabled', 'cryout-serious-slider' ) ),
+					array( 'value' => '0', 'label' => __( 'Disabled', 'cryout-serious-slider' ) ),
+				),
+			),
+			'animation' => array(
+				'label'   => __( 'Transition Effect', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'fade',       'label' => __( 'Fade', 'cryout-serious-slider' ) ),
+					array( 'value' => 'slide',      'label' => __( 'Slide', 'cryout-serious-slider' ) ),
+					array( 'value' => 'overslide',  'label' => __( 'Overslide', 'cryout-serious-slider' ) ),
+					array( 'value' => 'underslide', 'label' => __( 'Underslide', 'cryout-serious-slider' ) ),
+					array( 'value' => 'parallax',   'label' => __( 'Parallax', 'cryout-serious-slider' ) ),
+					array( 'value' => 'hflip',      'label' => __( 'Horizontal Flip', 'cryout-serious-slider' ) ),
+					array( 'value' => 'vflip',      'label' => __( 'Vertical Flip', 'cryout-serious-slider' ) ),
+				),
+			),
+			'hover' => array(
+				'label'   => __( 'Pause on Hover', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'hover', 'label' => __( 'Enabled', 'cryout-serious-slider' ) ),
+					array( 'value' => 'false', 'label' => __( 'Disabled', 'cryout-serious-slider' ) ),
+				),
+			),
+			'delay' => array(
+				'label'   => __( 'Transition Delay', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'number',
+				'um'	  => __( 'ms', 'cryout-serious-slider' ),
+			),
+			'transition' => array(
+				'label'   => __( 'Transition Duration', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'number',
+				'um'	  => __( 'ms', 'cryout-serious-slider' ),
+			),
+			'captionanimation' => array(
+				'label'   => __( 'Caption Text Animation', 'cryout-serious-slider' ),
+				'panel'   => 'animation',
+				'control' => 'select',
+				'choices' => array(
+					array( 'value' => 'none',    'label' => __( 'None', 'cryout-serious-slider' ) ),
+					array( 'value' => 'fade',    'label' => __( 'Fade', 'cryout-serious-slider' ) ),
+					array( 'value' => 'slide',   'label' => __( 'Slide', 'cryout-serious-slider' ) ),
+					array( 'value' => 'blur',    'label' => __( 'Blur', 'cryout-serious-slider' ) ),
+					array( 'value' => 'zoomin',  'label' => __( 'Zoom In', 'cryout-serious-slider' ) ),
+					array( 'value' => 'zoomout', 'label' => __( 'Zoom Out', 'cryout-serious-slider' ) ),
+				),
+			),
+		); // $option_choices
 
 	} // load_localization()
 
@@ -689,7 +906,7 @@ class Cryout_Serious_Slider {
 								esc_html( __( 'Remove', 'cryout-serious-slider') )
 							);
 						} else {
-							// if no edit capatibilities show image only
+							// if no edit capabilities show image only
 							echo wp_kses_post( $thumb );
 						} // if user can
 					} // if thumb
@@ -745,7 +962,7 @@ class Cryout_Serious_Slider {
 			} // end switch
 	} // custom_content_taxonomy()
 
-	/* filter cpt by taxonomy */
+	/* Filter cpt by taxonomy */
 	function add_taxonomy_filters() {
 		global $typenow;
 
@@ -778,7 +995,7 @@ class Cryout_Serious_Slider {
 		}
 	} // add_taxonomy_filters()
 
-	// add right column content (with shortcode hint) on edit slider page */
+	// Add right column content (with shortcode hint) on edit slider page */
 	function right_column( $tag, $taxonomy ) {
 		$term_ID = $tag->term_id;
 		$term_slug = $tag->slug;
@@ -895,11 +1112,11 @@ class Cryout_Serious_Slider {
 	} // delete_taxonomy_custom_meta()
 
 
-	/**********************
-	* mce extension
-	***********************/
+	/*********************************
+	* mce extension - classic editor
+	*********************************/
 
-    // media button
+    // Media button
     public function media_slider_button() {
 
         if ( ! current_user_can( 'edit_others_posts' ) ) {
@@ -919,7 +1136,7 @@ class Cryout_Serious_Slider {
 
     } // media_slider_button()
 
-	// mce button
+	// MCE button
 	function admin_head() {
 		global $post_type;
 		global $pagenow;
@@ -964,6 +1181,9 @@ class Cryout_Serious_Slider {
 			'text_select_slider' => __('Select Slider', 'cryout-serious-slider'),
 			'text_add_slider' => __('Add Slider', 'cryout-serious-slider'),
 			'nonce' => wp_create_nonce( 'cryout-sslider-column-image' ),
+			// REST nonce for block editor API calls (added for block support)
+			'rest_nonce' => wp_create_nonce( 'wp_rest' ),
+			'rest_url'   => esc_url_raw( rest_url( 'cryout-serious-slider/v1' ) ),
 			'slider_defaults' => json_encode( $this->defaults ),
 		);
 

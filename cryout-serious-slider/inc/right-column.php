@@ -21,16 +21,16 @@ if ( !defined( 'ABSPATH' ) ) exit;
 					<br><br>
 					<p><?php esc_html_e('Advanced Parameters', 'cryout-serious-slider') ?> <button id="toggle_advanced" type="button">+</button></p>
 					<textarea readonly="readonly" rows="17" class="second"><?php echo esc_textarea( preg_replace('/\s{2,}/m', PHP_EOL, '
-						hidetitle=true|false
-						hidecaption=true|false
 						width=number
 						height=number
 						theme=light|light2|dark|dark2|square|tall|captionleft|captionbottom|theme
-						accent=#123456
+						accent=#123abc
 						responsiveness=legacy|maintain
 						align=left|center|right|justify
 						textstyle=none|textshadow|bgcolor
 						animation=fade|slide|overslide|underslide|parallax|hflip|vflip
+						hidetitles=true|false
+						hidecaption=true|false
 						autoplay=true|false
 						hover=hover|false
 						delay=number (ms)
